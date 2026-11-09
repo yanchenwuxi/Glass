@@ -82,6 +82,7 @@ import com.glassbox.app.engine.PlaybackBridge
 import com.glassbox.app.engine.PlaybackKernel
 import com.glassbox.app.engine.PlaybackSession
 import com.glassbox.app.engine.PlaybackState
+import com.glassbox.app.engine.parse.M3u8AdCleaner
 import com.glassbox.app.engine.dlna.DlnaDevice
 import com.glassbox.app.engine.VideoAspect
 import com.glassbox.app.ui.MainViewModel
@@ -360,6 +361,20 @@ fun PlayerScreen(vm: MainViewModel, onBack: () -> Unit) {
         val skipMs = if (start <= 0) settings.skipIntroSec.coerceAtLeast(0) * 1000L else 0L
         engine.play(prep.url, start + skipMs, prep.headers, forceHls = prep.isHls)
         if (skipMs > 0) hint = "已跳过片头 ${settings.skipIntroSec}s"
+        // TVBox 风格无感去广告：原址先播，后台清洗 m3u8，检出广告再热切换
+        if (settings.adFilterEnabled && (prep.isHls || prep.url.contains("m3u8", ignoreCase = true))) {
+            val playUrl = prep.url
+            val hdrs = prep.headers
+            kotlinx.coroutines.delay(400)
+            val cleaned = runCatching { M3u8AdCleaner.clean(playUrl, hdrs) }.getOrNull()
+            if (cleaned != null && cleaned.adCount > 0 && !cleaned.proxyUrl.isNullOrBlank()) {
+                val pos = engine.currentPositionMs().coerceAtLeast(0)
+                engine.hotSwap(cleaned.proxyUrl!!, pos, hdrs, forceHls = true)
+                currentPlayUrl = cleaned.proxyUrl!!
+                hint = cleaned.message
+                android.util.Log.i("GlassBoxPlayer", "m3u8 ad clean: ${cleaned.message}")
+            }
+        }
         playStarted = true
         trackRefresh++
     }

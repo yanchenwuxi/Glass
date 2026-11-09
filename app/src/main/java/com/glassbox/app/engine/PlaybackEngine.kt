@@ -117,6 +117,11 @@ interface PlaybackEngine {
      * 否则 MPV 会走图片 demuxer，把播放列表当成一张 1 秒的静态图。
      */
     fun play(url: String, startMs: Long = 0, headers: Map<String, String> = emptyMap(), forceHls: Boolean = false)
+
+    /** M3U8 去广告热切换：尽量保持进度，默认等同 play。 */
+    fun hotSwap(url: String, startMs: Long, headers: Map<String, String> = emptyMap(), forceHls: Boolean = true) {
+        play(url, startMs, headers, forceHls)
+    }
     fun pause()
     fun resume()
     fun togglePause()

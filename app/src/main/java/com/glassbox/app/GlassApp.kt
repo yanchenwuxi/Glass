@@ -12,6 +12,7 @@ import com.glassbox.app.engine.live.M3uLiveSourceParser
 import com.glassbox.app.engine.parse.JsonParseExecutor
 import com.glassbox.app.engine.parse.ParseExecutor
 import com.glassbox.app.server.RemoteControlServer
+import com.glassbox.app.server.M3u8ProxyServer
 import com.glassbox.app.engine.dlna.DlnaCastManager
 import com.glassbox.app.engine.live.XmltvEpgParser
 
@@ -38,6 +39,10 @@ class GlassApp : Application() {
 
     @Volatile
     var remoteServer: RemoteControlServer? = null
+        private set
+
+    @Volatile
+    var m3u8Proxy: M3u8ProxyServer? = null
         private set
 
     override fun onCreate() {
@@ -69,6 +74,18 @@ class GlassApp : Application() {
     }
 
     private val pythonLock = Any()
+
+    fun ensureM3u8Proxy(): M3u8ProxyServer? {
+        m3u8Proxy?.takeIf { it.running }?.let { return it }
+        return runCatching {
+            val s = M3u8ProxyServer()
+            s.start()
+            m3u8Proxy = s
+            s
+        }.onFailure {
+            android.util.Log.e("GlassApp", "M3u8Proxy start failed", it)
+        }.getOrNull()
+    }
 
     fun ensurePython() {
         if (!Python.isStarted()) {

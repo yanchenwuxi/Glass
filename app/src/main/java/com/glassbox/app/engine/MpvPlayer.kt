@@ -98,6 +98,33 @@ class MpvPlayer(
         MPVLib.observeProperty("hwdec-current", MPVLib.MPV_FORMAT_STRING)
     }
 
+    override fun hotSwap(url: String, startMs: Long, headers: Map<String, String>, forceHls: Boolean) {
+        if (released) return
+        // replace 模式切换清单，减少完整 teardown
+        runCatching {
+            if (headers.isNotEmpty()) {
+                val fields = headers.entries.joinToString("\r\n") { "${it.key}: ${it.value}" }
+                MPVLib.setPropertyString("http-header-fields", fields)
+            }
+            runCatching { MPVLib.setPropertyString("demuxer-lavf-format", if (forceHls) "hls" else "") }
+            MPVLib.command(arrayOf("loadfile", url, "replace"))
+            if (startMs > 0) {
+                mainHandler.postDelayed({
+                    if (!released) {
+                        MPVLib.command(
+                            arrayOf("seek", String.format(java.util.Locale.US, "%.3f", startMs / 1000.0), "absolute")
+                        )
+                        MPVLib.setPropertyBoolean("pause", false)
+                    }
+                }, 200)
+            } else {
+                MPVLib.setPropertyBoolean("pause", false)
+            }
+        }.onFailure {
+            play(url, startMs, headers, forceHls)
+        }
+    }
+
     override fun play(url: String, startMs: Long, headers: Map<String, String>, forceHls: Boolean) {
         if (released) return
         error = null

@@ -157,7 +157,7 @@ fun SettingsScreen(
                         vm.updateSettings { it.copy(preferredGroup = (settings.preferredGroup + 1) % 3) }
                     }
                 }
-                SettingsRow(Icons.Outlined.Block, palette.iconOrange, "去广告", "过滤广告线路/分集与广告域名") {
+                SettingsRow(Icons.Outlined.Block, palette.iconOrange, "去广告", "线路过滤 + M3U8切片清洗热切换") {
                     Switch(
                         checked = settings.adFilterEnabled,
                         onCheckedChange = { on -> vm.updateSettings { it.copy(adFilterEnabled = on) } },
