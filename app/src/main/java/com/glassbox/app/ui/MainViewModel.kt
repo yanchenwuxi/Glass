@@ -175,7 +175,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     /** 播放页回写，供 /status 查询 */
     @Volatile
-    var playbackStatusJson: String = '{"ok":true,"playing":false,"page":"idle"}'
+    var playbackStatusJson: String = """{"ok":true,"playing":false,"page":"idle"}"""
 
     private val glassApp get() = getApplication<GlassApp>()
 
