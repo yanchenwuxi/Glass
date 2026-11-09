@@ -103,6 +103,7 @@ fun PlayerScreen(vm: MainViewModel, onBack: () -> Unit) {
     val palette = GlassTheme.colors
     val request by vm.pendingPlay.collectAsState()
     val settings by vm.settings.collectAsState()
+    val remoteCmd by vm.remoteCommand.collectAsState()
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
     val view = LocalView.current
@@ -161,6 +162,60 @@ fun PlayerScreen(vm: MainViewModel, onBack: () -> Unit) {
     val group = groups.getOrNull(selectedGroup)
     val episode = group?.episodes?.getOrNull(selectedEpisode)
     val error = snapshot.error ?: localError
+
+    // 局域网远程控制：play/pause/toggle/next/prev/seek/stop
+    LaunchedEffect(remoteCmd) {
+        val cmd = remoteCmd ?: return@LaunchedEffect
+        val eng = engineRef.value
+        when (cmd.action.lowercase()) {
+            "play", "resume" -> eng.resume()
+            "pause" -> eng.pause()
+            "toggle", "playpause" -> {
+                if (snapshot.playing) eng.pause() else eng.resume()
+            }
+            "stop" -> {
+                eng.pause()
+                onBack()
+            }
+            "next" -> {
+                val d = detail ?: return@LaunchedEffect
+                val g = d.groups.getOrNull(selectedGroup) ?: return@LaunchedEffect
+                if (selectedEpisode + 1 < g.episodes.size) {
+                    selectedEpisode += 1
+                } else if (selectedGroup + 1 < d.groups.size) {
+                    selectedGroup += 1
+                    selectedEpisode = 0
+                }
+            }
+            "prev", "previous" -> {
+                if (selectedEpisode > 0) {
+                    selectedEpisode -= 1
+                } else if (selectedGroup > 0) {
+                    selectedGroup -= 1
+                    val g = detail?.groups?.getOrNull(selectedGroup)
+                    selectedEpisode = ((g?.episodes?.size ?: 1) - 1).coerceAtLeast(0)
+                }
+            }
+            "seek" -> {
+                val ms = cmd.extras["positionMs"]?.toLongOrNull()
+                    ?: cmd.extras["ms"]?.toLongOrNull()
+                    ?: return@LaunchedEffect
+                eng.seekTo(ms)
+            }
+        }
+        vm.consumeRemoteCommand(cmd)
+    }
+
+    // 回写播放状态供 GET /status
+    LaunchedEffect(snapshot.playing, snapshot.positionMs, snapshot.durationMs, episode?.name) {
+        vm.updatePlaybackStatus(
+            playing = snapshot.playing,
+            positionMs = snapshot.positionMs,
+            durationMs = snapshot.durationMs,
+            title = detail?.item?.title ?: "",
+            episode = episode?.name ?: ""
+        )
+    }
 
     LaunchedEffect(kernel) {
         snapshot = PlaybackState()

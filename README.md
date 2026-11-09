@@ -74,8 +74,9 @@ app/src/main/java/com/glassbox/app/
 - [x] 历史/收藏：SQLite 双写 + 启动迁移（对齐 TVBox 语义）
 - [x] 推送：设置开关启停 NanoHTTPD（默认端口 9978）
 
-### P2（可选）
+### P2（进行中）
 
+- [x] 远程控制播放响应：play/pause/toggle/next/prev/seek/stop + GET /status
 - [ ] DLNA、本地文件、迅雷 P2P、完整弹幕
 
 ---

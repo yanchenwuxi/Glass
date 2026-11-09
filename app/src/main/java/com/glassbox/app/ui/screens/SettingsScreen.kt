@@ -46,6 +46,7 @@ import android.provider.Settings
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.glassbox.app.BuildConfig
+import com.glassbox.app.core.DeviceNet
 import com.glassbox.app.engine.PlaybackKernel
 import com.glassbox.app.ui.MainViewModel
 import com.glassbox.app.ui.components.*
@@ -160,7 +161,17 @@ fun SettingsScreen(
                 SettingsRow(Icons.Outlined.LiveTv, palette.iconPink, "直播", "M3U / TXT 订阅") {
                     ValueText("打开") { onLive() }
                 }
-                SettingsRow(Icons.Outlined.WifiTethering, palette.iconGreen, "局域网远程控制", "端口 ${settings.remoteControlPort}") {
+                SettingsRow(
+                    Icons.Outlined.WifiTethering,
+                    palette.iconGreen,
+                    "局域网远程控制",
+                    if (settings.remoteControlEnabled) {
+                        val ip = DeviceNet.localIpv4() ?: "本机"
+                        "http://$ip:${settings.remoteControlPort}"
+                    } else {
+                        "关闭 · 端口 ${settings.remoteControlPort}"
+                    }
+                ) {
                     Switch(
                         checked = settings.remoteControlEnabled,
                         onCheckedChange = { on -> vm.setRemoteControlEnabled(on) },

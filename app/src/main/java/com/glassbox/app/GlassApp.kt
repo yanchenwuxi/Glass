@@ -44,9 +44,13 @@ class GlassApp : Application() {
         parseExecutor = JsonParseExecutor()
     }
 
-    fun startRemoteControl(port: Int = RemoteControlServer.DEFAULT_PORT, onAction: (String, Map<String, String>) -> Unit = { _, _ -> }) {
+    fun startRemoteControl(
+        port: Int = RemoteControlServer.DEFAULT_PORT,
+        onAction: (String, Map<String, String>) -> Unit = { _, _ -> },
+        statusProvider: () -> String = { """{"ok":true,"playing":false}""" }
+    ) {
         stopRemoteControl()
-        val server = RemoteControlServer(port, onAction)
+        val server = RemoteControlServer(port, onAction, statusProvider)
         server.start()
         remoteServer = server
     }

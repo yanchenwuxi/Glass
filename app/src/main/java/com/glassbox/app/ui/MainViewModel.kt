@@ -120,6 +120,13 @@ data class PlayRequest(
     val startPositionMs: Long = 0
 )
 
+/** 局域网远程控制指令，由 RemoteControlServer 写入、PlayerScreen 消费。 */
+data class RemoteCommand(
+    val action: String,
+    val extras: Map<String, String> = emptyMap(),
+    val seq: Long = System.currentTimeMillis()
+)
+
 /** 资源页批量操作类型。 */
 enum class SourceBatchAction(val label: String) {
     ENABLE("启用"),
@@ -162,6 +169,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val liveLoading: StateFlow<Boolean> = _liveLoading.asStateFlow()
     private val _liveError = MutableStateFlow<String?>(null)
     val liveError: StateFlow<String?> = _liveError.asStateFlow()
+
+    private val _remoteCommand = MutableStateFlow<RemoteCommand?>(null)
+    val remoteCommand: StateFlow<RemoteCommand?> = _remoteCommand.asStateFlow()
+
+    /** 播放页回写，供 /status 查询 */
+    @Volatile
+    var playbackStatusJson: String = '{"ok":true,"playing":false,"page":"idle"}'
 
     private val glassApp get() = getApplication<GlassApp>()
 
@@ -1520,10 +1534,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun applyRemoteControl(settings: AppSettings) {
         if (settings.remoteControlEnabled) {
             runCatching {
-                glassApp.startRemoteControl(settings.remoteControlPort) { action, _ ->
-                    Log.i("RemoteControl", "action=$action")
-                    // 播放页可通过观察 settings/事件扩展；此处先记日志
-                }
+                glassApp.startRemoteControl(
+                    port = settings.remoteControlPort,
+                    onAction = { action, extras ->
+                        Log.i("RemoteControl", "action=$action extras=$extras")
+                        _remoteCommand.value = RemoteCommand(action = action, extras = extras)
+                    },
+                    statusProvider = { playbackStatusJson }
+                )
             }.onFailure {
                 Log.e("RemoteControl", "start failed", it)
             }
@@ -1535,6 +1553,26 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun setRemoteControlEnabled(enabled: Boolean) {
         updateSettings { it.copy(remoteControlEnabled = enabled) }
         applyRemoteControl(store.settings.value.copy(remoteControlEnabled = enabled))
+    }
+
+    fun consumeRemoteCommand(cmd: RemoteCommand) {
+        if (_remoteCommand.value?.seq == cmd.seq) {
+            _remoteCommand.value = null
+        }
+    }
+
+    fun updatePlaybackStatus(
+        playing: Boolean,
+        positionMs: Long = 0,
+        durationMs: Long = 0,
+        title: String = "",
+        episode: String = ""
+    ) {
+        val safeTitle = title.replace("\"", "'")
+        val safeEp = episode.replace("\"", "'")
+        playbackStatusJson =
+            "{\"ok\":true,\"playing\":$playing,\"positionMs\":$positionMs,\"durationMs\":$durationMs," +
+            "\"title\":\"$safeTitle\",\"episode\":\"$safeEp\",\"page\":\"player\"}"
     }
 
     // endregion
