@@ -97,7 +97,19 @@ class AppStore(private val context: Context) {
         epgUrl = epgUrl ?: "",
         parseListJson = parseListJson ?: "[]",
         adFilterEnabled = adFilterEnabled,
-        skipIntroSec = skipIntroSec.coerceIn(0, 600)
+        skipIntroSec = skipIntroSec.coerceIn(0, 600),
+        skipOutroSec = skipOutroSec.coerceIn(0, 600),
+        backgroundPlay = backgroundPlay,
+        hideStatusBar = hideStatusBar,
+        tvMode = tvMode,
+        homeCarousel = homeCarousel,
+        fontScale = fontScale.coerceIn(0.75f, 1.5f),
+        accentIndex = accentIndex.coerceIn(0, 4),
+        proxyEnabled = proxyEnabled,
+        proxyHost = proxyHost ?: "",
+        proxyPort = proxyPort.coerceIn(0, 65535),
+        danmuEnabled = danmuEnabled,
+        shortDramaPreload = shortDramaPreload
     )
 
     private fun seed(): List<SourceEntity> {

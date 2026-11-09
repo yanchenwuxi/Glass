@@ -1513,9 +1513,63 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------------- 设置 ----------------
 
+    fun clearImageAndNetCache(context: android.content.Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val loader = coil.ImageLoader.Builder(context).build()
+                loader.memoryCache?.clear()
+                loader.diskCache?.clear()
+            }
+            runCatching {
+                val disk = context.cacheDir
+                disk?.listFiles()?.forEach { f ->
+                    if (f.name.contains("image", true) || f.name.contains("coil", true)) {
+                        f.deleteRecursively()
+                    }
+                }
+            }
+            com.glassbox.app.core.Net.clearMemoryCache()
+        }
+    }
+
+    fun backupAll(context: android.content.Context): String? {
+        return runCatching {
+            val dir = java.io.File(context.getExternalFilesDir(null), "backup").apply { mkdirs() }
+            val file = java.io.File(dir, "glassbox_backup_${System.currentTimeMillis()}.json")
+            val payload = mapOf(
+                "settings" to store.settings.value,
+                "sources" to store.sources.value,
+                "exportedAt" to System.currentTimeMillis()
+            )
+            file.writeText(StoreJson().gson.toJson(payload))
+            file.absolutePath
+        }.getOrNull()
+    }
+
+    fun restoreBackup(context: android.content.Context, uri: android.net.Uri): String {
+        return runCatching {
+            val text = context.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
+                ?: return@runCatching "无法读取备份"
+            val root = com.google.gson.JsonParser.parseString(text).asJsonObject
+            val settingsEl = root.get("settings")
+            if (settingsEl != null && settingsEl.isJsonObject) {
+                val s = StoreJson().gson.fromJson(settingsEl, AppSettings::class.java)
+                store.saveSettings(s)
+                com.glassbox.app.core.Net.applyHttpProxy(s.proxyEnabled, s.proxyHost, s.proxyPort)
+            }
+            "备份已恢复（源列表请在资源页确认）"
+        }.getOrElse { "恢复失败：${it.message}" }
+    }
+
+    fun setParseListJson(json: String) {
+        updateSettings { it.copy(parseListJson = json) }
+    }
+
     fun updateSettings(transform: (AppSettings) -> AppSettings) {
         viewModelScope.launch {
-            store.saveSettings(transform(store.settings.value))
+            val next = transform(store.settings.value)
+            com.glassbox.app.core.Net.applyHttpProxy(next.proxyEnabled, next.proxyHost, next.proxyPort)
+            store.saveSettings(next)
         }
     }
 

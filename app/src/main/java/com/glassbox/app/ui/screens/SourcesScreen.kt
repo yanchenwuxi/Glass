@@ -54,6 +54,7 @@ import com.glassbox.app.data.SourceOrigin
 import com.glassbox.app.ui.MainViewModel
 import com.glassbox.app.ui.SourceBatchAction
 import com.glassbox.app.ui.components.*
+import com.glassbox.app.core.showToast
 import com.glassbox.app.ui.theme.GlassTheme
 
 /**
@@ -712,11 +713,13 @@ private fun ImportSheet(
             Spacer(Modifier.height(10.dp))
             if (mode == null) {
                 ImportGroup("媒体服务器") {
-                    ImportRow("Emby / Jellyfin / 飞牛 NAS", "媒体服务器直连", palette.iconViolet) {
-                        onPlaceholder("Emby / Jellyfin / 飞牛")
+                    ImportRow("Emby / Jellyfin / 飞牛 NAS", "粘贴服务器 API 地址作为源导入", palette.iconViolet) {
+                        mode = "url"
+                        nameInput = "媒体服务器"
+                        urlInput = ""
                     }
-                    ImportRow("WebDAV / SFTP / FTP 挂载", "网络存储挂载", palette.iconOrange) {
-                        onPlaceholder("网络挂载")
+                    ImportRow("WebDAV / 网络路径", "通过本地文件或目录挂载后导入", palette.iconOrange) {
+                        onPickFolder()
                     }
                 }
                 ImportGroup("影视源") {
@@ -733,27 +736,33 @@ private fun ImportSheet(
                         mode = "text"
                         textInput = clipboard.getText()?.text.orEmpty()
                     }
-                    ImportRow("私有解析接口", "可配置占位 · 未接入", palette.iconBlueAlt) {
-                        onPlaceholder("私有解析接口")
+                    ImportRow("私有解析接口", "编辑 JSON 解析链，播放失败时回退", palette.iconBlueAlt) {
+                        mode = "parse"
+                        textInput = vm.setting().parseListJson
                     }
                 }
                 ImportGroup("直播") {
-                    ImportRow("直播源 M3U / TXT", "可配置占位 · 未接入直播解析", palette.iconOrange) {
-                        onPlaceholder("直播源")
+                    ImportRow("直播源 M3U / TXT", "填写订阅地址，写入设置并打开直播", palette.iconOrange) {
+                        mode = "live"
+                        urlInput = vm.setting().liveSourceUrl
                     }
-                    ImportRow("局域网推送 / 扫码", "可配置占位", palette.iconGreen) {
-                        onPlaceholder("局域网推送")
+                    ImportRow("局域网推送 / 远程控制", "开启后可用局域网控制播放", palette.iconGreen) {
+                        vm.updateSettings { it.copy(remoteControlEnabled = true) }
+                        showToast(context, "已开启远程控制，可在设置页查看地址")
+                        onDismiss()
                     }
                 }
                 ImportGroup("从本地导入") {
                     ImportRow("本地文件（可多选）", "JSON / JS / PY / TXT", palette.iconBlue) { onPickFiles() }
                     ImportRow("本地文件夹", "递归扫描所选目录", palette.iconPurple) { onPickFolder() }
-                    ImportRow("HTML 网页源", "可配置占位", palette.iconPink) {
-                        onPlaceholder("HTML 网页源")
+                    ImportRow("HTML 网页源", "粘贴网页规则 / 源文本", palette.iconPink) {
+                        mode = "text"
+                        nameInput = "HTML源"
+                        textInput = clipboard.getText()?.text.orEmpty()
                     }
                 }
             } else {
-                val isUrl = mode == "url" || mode == "kazumi"
+                val isUrl = mode == "url" || mode == "kazumi" || mode == "live"
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -764,6 +773,8 @@ private fun ImportSheet(
                         when (mode) {
                             "url" -> "TVBox 影视源"
                             "kazumi" -> "Kazumi 规则仓库"
+                            "live" -> "直播源 M3U / TXT"
+                            "parse" -> "解析接口 JSON"
                             else -> "粘贴配置文本"
                         },
                         color = palette.textPrimary,
@@ -783,28 +794,62 @@ private fun ImportSheet(
                 }
                 Spacer(Modifier.height(10.dp))
                 Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (isUrl) {
-                        FormField("名称（可选）", nameInput) { nameInput = it }
-                        FormField("链接地址", urlInput) { urlInput = it }
-                        PrimaryCapsule(
-                            text = "解析预览",
-                            minHeight = 44.dp,
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                if (urlInput.isBlank()) showToast(context, "请先填写链接")
-                                else vm.previewFromUrl(urlInput.trim())
-                            }
-                        )
-                    } else {
-                        FormField("名称（可选）", nameInput) { nameInput = it }
-                        MultiLineField(textInput) { textInput = it }
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            ActionPill("从剪贴板粘贴", palette.iconBlue) {
-                                textInput = clipboard.getText()?.text.orEmpty()
-                            }
-                            ActionPill("解析预览", palette.iconGreen) {
-                                if (textInput.isBlank()) showToast(context, "请先粘贴配置内容")
-                                else vm.previewFromText(textInput, nameInput.ifBlank { null }, SourceOrigin.CLIPBOARD)
+                    when (mode) {
+                        "live" -> {
+                            FormField("M3U / TXT 地址", urlInput) { urlInput = it }
+                            PrimaryCapsule(
+                                text = "保存并使用",
+                                minHeight = 44.dp,
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    if (urlInput.isBlank()) showToast(context, "请填写直播源地址")
+                                    else {
+                                        vm.updateSettings { it.copy(liveSourceUrl = urlInput.trim()) }
+                                        showToast(context, "直播源已保存，请到设置或直播页打开")
+                                        onDismiss()
+                                    }
+                                }
+                            )
+                        }
+                        "parse" -> {
+                            MultiLineField(textInput) { textInput = it }
+                            PrimaryCapsule(
+                                text = "保存解析链",
+                                minHeight = 44.dp,
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    val j = textInput.trim().ifBlank { "[]" }
+                                    vm.setParseListJson(j)
+                                    showToast(context, "解析接口已保存")
+                                    onDismiss()
+                                }
+                            )
+                        }
+                        else -> {
+                            if (isUrl) {
+                                FormField("名称（可选）", nameInput) { nameInput = it }
+                                FormField("链接地址", urlInput) { urlInput = it }
+                                PrimaryCapsule(
+                                    text = "解析预览",
+                                    minHeight = 44.dp,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onClick = {
+                                        if (urlInput.isBlank()) showToast(context, "请先填写链接")
+                                        else vm.previewFromUrl(urlInput.trim())
+                                    }
+                                )
+                            } else {
+                                FormField("名称（可选）", nameInput) { nameInput = it }
+                                MultiLineField(textInput) { textInput = it }
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    ActionPill("从剪贴板粘贴", palette.iconBlue) {
+                                        textInput = clipboard.getText()?.text.orEmpty()
+                                    }
+                                    ActionPill("解析预览", palette.iconGreen) {
+                                        if (textInput.isBlank()) showToast(context, "请先粘贴配置内容")
+                                        else vm.previewFromText(textInput, nameInput.ifBlank { null }, SourceOrigin.CLIPBOARD)
+                                    }
+                                }
                             }
                         }
                     }

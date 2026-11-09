@@ -219,7 +219,29 @@ data class AppSettings(
     /** 过滤线路/分集名与广告域名播放地址 */
     val adFilterEnabled: Boolean = true,
     /** 起播自动跳过片头秒数，0 关闭 */
-    val skipIntroSec: Int = 0
+    val skipIntroSec: Int = 0,
+    /** 片尾跳过：剩余不足 N 秒时提示/自动下一集，0 关闭 */
+    val skipOutroSec: Int = 0,
+    /** 后台播放（通知栏/锁屏控制） */
+    val backgroundPlay: Boolean = true,
+    /** 隐藏状态栏（播放页沉浸） */
+    val hideStatusBar: Boolean = true,
+    /** 电视模式：更大焦点、遥控器友好 */
+    val tvMode: Boolean = false,
+    /** 首页轮播海报 */
+    val homeCarousel: Boolean = true,
+    /** 全局字号缩放 0.85 / 1.0 / 1.15 */
+    val fontScale: Float = 1.0f,
+    /** 强调色：0 默认玫红 / 1 蓝 / 2 紫 / 3 青 / 4 橙 */
+    val accentIndex: Int = 0,
+    /** HTTP 代理 */
+    val proxyEnabled: Boolean = false,
+    val proxyHost: String = "",
+    val proxyPort: Int = 0,
+    /** 弹幕开关（播放页读取） */
+    val danmuEnabled: Boolean = false,
+    /** 短剧预载 */
+    val shortDramaPreload: Boolean = true
 )
 
 /** 画面预设：原版「+存为预设」保存的一组滑杆数值。 */

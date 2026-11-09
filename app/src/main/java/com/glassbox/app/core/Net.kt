@@ -11,6 +11,8 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.MediaType.Companion.toMediaType
 import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.Proxy
 import java.nio.ByteBuffer
 import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
@@ -28,12 +30,34 @@ object Net {
     private const val READ_TIMEOUT = 10L
     private const val CALL_TIMEOUT = 12L
 
-    val client: OkHttpClient = OkHttpClient.Builder()
-        .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
-        .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
-        .callTimeout(CALL_TIMEOUT, TimeUnit.SECONDS)
-        .followRedirects(true)
-        .build()
+    @Volatile
+    private var _client: OkHttpClient = buildClient(null)
+
+    val client: OkHttpClient get() = _client
+
+    private fun buildClient(proxy: Proxy?): OkHttpClient {
+        val b = OkHttpClient.Builder()
+            .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
+            .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS)
+            .callTimeout(CALL_TIMEOUT, TimeUnit.SECONDS)
+            .followRedirects(true)
+        if (proxy != null) b.proxy(proxy)
+        return b.build()
+    }
+
+    /** 应用或清除 HTTP 代理（设置页修改后立即生效）。 */
+    fun applyHttpProxy(enabled: Boolean, host: String, port: Int) {
+        _client = if (enabled && host.isNotBlank() && port in 1..65535) {
+            buildClient(Proxy(Proxy.Type.HTTP, InetSocketAddress(host.trim(), port)))
+        } else {
+            buildClient(null)
+        }
+    }
+
+    fun clearMemoryCache() {
+        synchronized(cache) { cache.clear() }
+        synchronized(inflight) { inflight.clear() }
+    }
 
     private val mutex = Mutex()
     private val inflight = mutableMapOf<String, CompletableDeferred<String>>()
