@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>柔光玻璃 · TVBox 类影音应用视觉稿</title>
+<style>
+/* ============================================================
+   柔光玻璃 · Design Tokens
+   ============================================================ */
+:root{
+  --bg:#F2F4FA;
+  --glow-a:rgba(220,231,255,.90);
+  --glow-b:rgba(246,230,243,.82);
+  --glow-c:rgba(223,243,238,.74);
+
+  --brand:#6C8AF0;
+  --brand-deep:#5B78DA;
+  --brand-2:#6FC9B8;
+  --warm:#EDA79E;
+  --violet:#AFA0E8;
+
+  --text:#1B2233;
+  --text-2:#4C566B;
+  --text-3:#79839A;
+  --text-4:#A6AFC2;
+
+  --hair:rgba(27,34,51,.08);
+
+  --l1-fill:rgba(255,255,255,.42);
+  --l1-line:rgba(255,255,255,.55);
+  --l2-fill:rgba(255,255,255,.52);
+  --l2-line:rgba(255,255,255,.62);
+  --l3-fill:rgba(255,255,255,.62);
+  --l3-line:rgba(255,255,255,.72);
+  --l4-fill:rgba(255,255,255,.54);
+
+  --sh-sm:0 2px 8px rgba(23,32,64,.06);
+  --sh-md:0 8px 24px rgba(23,32,64,.08);
+  --sh-lg:0 12px 32px rgba(23,32,64,.12);
+  --sh-xl:0 16px 40px rgba(23,32,64,.16);
+
+  --r-xs:4px; --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:20px; --r-panel:28px; --r-pill:999px;
+}
+
+.dark{
+  --bg:#0B0E16;
+  --glow-a:rgba(28,43,82,.85);
+  --glow-b:rgba(42,31,62,.78);
+  --glow-c:rgba(18,48,46,.70);
+
+  --brand:#8EA5FF;
+  --brand-deep:#7A91EA;
+  --brand-2:#7ED7C6;
+  --warm:#E9B0A6;
+  --violet:#BCA9F5;
+
+  --text:#ECF1FA;
+  --text-2:#A8B3C7;
+  --text-3:#7C879C;
+  --text-4:#5B657A;
+
+  --hair:rgba(255,255,255,.10);
+
+  --l1-fill:rgba(255,255,255,.08);
+  --l1-line:rgba(255,255,255,.14);
+  --l2-fill:rgba(255,255,255,.11);
+  --l2-line:rgba(255,255,255,.16);
+  --l3-fill:rgba(255,255,255,.15);
+  --l3-line:rgba(255,255,255,.20);
+  --l4-fill:rgba(11,14,22,.70);
+
+  --sh-sm:0 2px 8px rgba(0,0,0,.40);
+  --sh-md:0 8px 24px rgba(0,0,0,.48);
+  --sh-lg:0 12px 32px rgba(0,0,0,.55);
+  --sh-xl:0 16px 40px rgba(0,0,0,.62);
+}
+
+/* ============================================================
+   Page shell
+   ============================================================ */
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+html,body{margin:0;padding:0}
+body{
+  font-family:system-ui,-apple-system,"PingFang SC","HarmonyOS Sans","Microsoft YaHei",sans-serif;
+  color:var(--text);
+  background-color:#EEF1F8;
+  background-image:
+    radial-gradient(120% 70% at 8% 0%, rgba(221,232,255,.95) 0%, rgba(221,232,255,0) 60%),
+    radial-gradient(100% 60% at 96% 8%, rgba(247,231,244,.85) 0%, rgba(247,231,244,0) 58%),
+    radial-gradient(130% 80% at 80% 100%, rgba(222,243,238,.80) 0%, rgba(222,243,238,0) 62%);
+  background-attachment:fixed;
+  min-height:100vh;
+  padding:56px 32px 96px;
+}
+.wrap{max-width:1360px;margin:0 auto}
+
+.page-head{margin-bottom:44px}
+.kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:#5F6A85;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.7);
+  padding:8px 14px;border-radius:999px;backdrop-filter:blur(12px);
+  box-shadow:0 2px 8px rgba(23,32,64,.06);
+}
+.kicker i{width:6px;height:6px;border-radius:50%;background:var(--brand);display:block}
+.page-head h1{
+  font-size:44px;line-height:1.14;margin:22px 0 12px;letter-spacing:-.02em;font-weight:650;
+  color:#151B28;
+}
+.page-head h1 em{
+  font-style:normal;background:linear-gradient(100deg,#6C8AF0,#AFA0E8 55%,#6FC9B8);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.page-head p{max-width:760px;color:#55607A;font-size:15px;line-height:1.75;margin:0}
+.meta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.meta-row span{
+  font-size:12px;color:#4C566B;background:rgba(255,255,255,.6);
+  border:1px solid rgba(255,255,255,.75);padding:6px 12px;border-radius:999px;backdrop-filter:blur(10px);
+}
+
+/* section titles */
+.sec-head{display:flex;align-items:flex-end;gap:16px;margin:64px 0 24px}
+.sec-head .no{
+  font-size:12px;font-weight:600;letter-spacing:.1em;color:#8B93A8;
+  min-width:28px;
+}
+.sec-head h2{font-size:22px;margin:0;font-weight:650;letter-spacing:-.01em;color:#1B2233}
+.sec-head .desc{font-size:13px;color:#6B7690;margin:0 0 2px;flex:1}
+.rule{height:1px;background:linear-gradient(90deg,rgba(27,34,51,.12),rgba(27,34,51,0));margin-top:-14px}
+
+/* ============================================================
+   Token board
+   ============================================================ */
+.board{
+  background:rgba(255,255,255,.46);
+  border:1px solid rgba(255,255,255,.7);
+  border-radius:28px;
+  padding:32px;
+  backdrop-filter:blur(20px) saturate(1.05);
+  -webkit-backdrop-filter:blur(20px) saturate(1.05);
+  box-shadow:0 16px 40px rgba(23,32,64,.10), inset 0 1px 0 rgba(255,255,255,.9);
+  display:grid;grid-template-columns:1.15fr 1fr;gap:36px;
+}
+.board h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#7A849A;margin:0 0 16px;font-weight:600}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.sw{border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 4px 14px rgba(23,32,64,.07)}
+.sw .chip{height:56px}
+.sw .cap{padding:7px 8px 9px;font-size:9.5px;line-height:1.35;color:#5D6780;letter-spacing:.02em}
+.sw .cap b{display:block;color:#1B2233;font-size:10.5px;font-weight:600}
+
+.glass-demo{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.gd{
+  position:relative;height:132px;border-radius:16px;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-end;padding:12px;
+  background-image:url("https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cinematic%20abstract%20artwork%2C%20soft%20mint%20and%20lavender%20gradients%2C%20glowing%20mist%2C%20no%20text&image_size=portrait_4_3");
+  background-size:cover;background-position:center;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);
+}
+.gd::before{content:"";position:absolute;inset:0;background:rgba(10,16,30,.28)}
+.gd .inner{
+  position:relative;border-radius:10px;padding:9px 10px;color:#fff;
+  font-size:10px;line-height:1.4;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85);
+}
+.gd .lv{position:relative;font-size:9px;letter-spacing:.14em;color:rgba(255,255,255,.9);margin-bottom:5px;font-weight:600}
+.g2 .inner{backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(255,255,255,.52);color:#1B2233}
+.g3 .inner{backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);background:rgba(255,255,255,.62);color:#1B2233}
+.g4 .inner{backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);background:rgba(255,255,255,.54);color:#1B2233}
+
+.type-row{display:flex;flex-direction:column;gap:10px;margin-top:26px}
+.tr{display:flex;align-items:baseline;gap:14px;border-bottom:1px dashed rgba(27,34,51,.1);padding-bottom:8px}
+.tr .s{flex:0 0 84px;font-size:10px;color:#929BB0;letter-spacing:.06em}
+.radii{display:flex;gap:12px;align-items:flex-end;margin-top:14px;flex-wrap:wrap}
+.rad{width:56px;height:56px;background:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 6px 16px rgba(23,32,64,.07);display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#5D6780}
+.spacing{display:flex;align-items:center;gap:6px;margin-top:18px}
+.spacing i{display:block;height:14px;border-radius:3px;background:linear-gradient(180deg,#B4C4FF,#8EA5FF);opacity:.75}
+.spacing span{font-size:10px;color:#7C879C;margin-left:6px}
+
+/* ============================================================
+   Phone frames
+   ============================================================ */
+.frames{display:flex;flex-wrap:wrap;gap:40px}
+.frame-unit{flex:0 0 auto;width:375px}
+.phone{
+  position:relative;width:375px;height:790px;border-radius:40px;overflow:hidden;
+  background:var(--bg);
+  box-shadow:0 30px 60px rgba(23,32,64,.16),0 2px 0 rgba(255,255,255,.9) inset,0 0 0 8px rgba(255,255,255,.72),0 0 0 9px rgba(23,32,64,.06);
+  isolation:isolate;
+}
+.phone .screen{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden}
+.phone::after{ /* screen glass sheen */
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:40px;
+  background:linear-gradient(150deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 38%,rgba(255,255,255,0) 76%,rgba(255,255,255,.06) 100%);
+}
+.caption{padding:20px 4px 0}
+.caption h4{margin:0 0 6px;font-size:15px;font-weight:650;color:#1B2233}
+.caption p{margin:0;font-size:12px;line-height:1.7;color:#6B7690}
+.caption .tagline{display:inline-block;margin-top:10px;font-size:10px;letter-spacing:.08em;
+  color:#6C8AF0;background:rgba(108,138,240,.10);padding:4px 9px;border-radius:999px}
+
+/* soft glow bg inside phone */
+.glowbg{
+  position:absolute;inset:0;z-index:0;
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(120% 70% at 8% 0%, var(--glow-a) 0%, transparent 62%),
+    radial-gradient(100% 60% at 96% 8%, var(--glow-b) 0%, transparent 58%),
+    radial-gradient(130% 80% at 82% 100%, var(--glow-c) 0%, transparent 60%);
+}
+
+/* status bar */
+.status{
+  position:relative;z-index:5;height:44px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;font-size:12px;font-weight:600;color:var(--text);letter-spacing:.02em;
+  font-variant-numeric:tabular-nums;
+}
+.status .ico{display:flex;gap:5px;align-items:center;opacity:.85}
+.status .ico i{display:block;background:currentColor;border-radius:2px}
+.sig{width:15px;height:9px;clip-path:polygon(0 70%,20% 70%,20% 100%,0 100%);opacity:.85}
+.bat{width:18px;height:9px;border-radius:3px;border:1px solid currentColor;background:transparent;position:relative}
+.bat::before{content:"";position:absolute;left:1px;top:1px;bottom:1px;width:11px;background:currentColor;border-radius:2px}
+.bat::after{content:"";position:absolute;right:-4px;top:3px;width:2px;height:3px;background:currentColor;border-radius:1px}
+
+/* glass primitives */
+.l1{background:var(--l1-fill);border:1px solid var(--l1-line);
+  backdrop-filter:blur(12px) saturate(1.05);-webkit-backdrop-filter:blur(12px) saturate(1.05);
+  box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.92)}
+.dark .l1{box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.22)}
+.l2{background:var(--l2-fill);border:1px solid var(--l2-line);
+  backdrop-filter:blur(20px) saturate(1.08);-webkit-backdrop-filter:blur(20px) saturate(1.08);
+  box-shadow:var(--sh-lg),inset 0 1px 0 rgba(255,255,255,.92)}
+.dark .l2{box-shadow:var(--sh-lg),inset 0 1px 0 rgba(255,255,255,.24)}
+.l3{background:var(--l3-fill);border:1px solid var(--l3-line);
+  backdrop-filter:blur(28px) saturate(1.1);-webkit-backdrop-filter:blur(28px) saturate(1.1);
+  box-shadow:var(--sh-xl),inset 0 1px 0 rgba(255,255,255,.94)}
+.dark .l3{box-shadow:var(--sh-xl),inset 0 1px 0 rgba(255,255,255,.26)}
+.l4{background:var(--l4-fill);border:1px solid rgba(255,255,255,.3);
+  backdrop-filter:blur(32px) saturate(1.1);-webkit-backdrop-filter:blur(32px) saturate(1.1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
+.dark .l4{background:var(--l4-fill);border-color:rgba(255,255,255,.10)}
+
+/* topbar */
+.topbar{position:relative;z-index:6;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px 0 20px}
+.topbar .title{font-size:22px;font-weight:650;letter-spacing:-.01em;color:var(--text)}
+.topbar .acts{display:flex;gap:6px}
+.iconbtn{width:36px;height:36px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.5);color:var(--text-2);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.dark .iconbtn{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.iconbtn svg{width:17px;height:17px}
+
+/* sections */
+.sect{position:relative;z-index:3;padding:0 16px}
+.sect-head{height:34px;display:flex;align-items:center;justify-content:space-between}
+.sect-head h3{margin:0;font-size:17px;font-weight:650;letter-spacing:-.01em;color:var(--text)}
+.sect-head .more{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:2px}
+
+/* horizontal cards */
+.hrow{display:flex;gap:12px;overflow:hidden;padding-bottom:2px}
+.hcard{flex:0 0 220px;height:150px;border-radius:16px;position:relative;overflow:hidden}
+.hcard img{width:100%;height:100%;object-fit:cover;display:block}
+.hcard .bottom{
+  position:absolute;left:0;right:0;bottom:0;padding:26px 12px 10px;
+  background:linear-gradient(180deg,rgba(10,16,30,0),rgba(10,16,30,.78));
+}
+.hcard .bottom .t{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hcard .bottom .m{font-size:10.5px;color:rgba(255,255,255,.72);margin-top:3px}
+.hcard .prog{position:absolute;left:0;bottom:0;height:2px;width:62%;background:var(--brand)}
+.hcard .badge{position:absolute;left:8px;top:8px;font-size:9px;padding:3px 7px;border-radius:4px;
+  background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.6);color:#fff;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-weight:600}
+
+/* hero */
+.hero{position:relative;height:178px;border-radius:20px;overflow:hidden;box-shadow:var(--sh-lg),inset 0 1px 0 rgba(255,255,255,.9)}
+.hero img{width:100%;height:100%;object-fit:cover;display:block}
+.hero .info{
+  position:absolute;left:0;right:0;bottom:0;height:64px;padding:0 14px;display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.54);border-top:1px solid rgba(255,255,255,.72);
+  backdrop-filter:blur(32px) saturate(1.1);-webkit-backdrop-filter:blur(32px) saturate(1.1);
+}
+.dark .hero .info{background:rgba(11,14,22,.70);border-top-color:rgba(255,255,255,.10)}
+.hero .info .txt{flex:1;min-width:0}
+.hero .info .t{font-size:14px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero .info .m{font-size:10.5px;color:var(--text-3);margin-top:2px}
+.hero .dots{position:absolute;left:0;right:0;bottom:70px;display:flex;gap:5px;justify-content:center}
+.hero .dots i{width:4px;height:4px;border-radius:2px;background:rgba(255,255,255,.55)}
+.hero .dots i.on{width:14px;background:rgba(255,255,255,.92)}
+
+/* poster grid */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 12px}
+.pcard{position:relative;border-radius:16px;overflow:hidden;background:var(--l1-fill);
+  border:1px solid var(--l1-line);box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.9)}
+.dark .pcard{box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.2)}
+.pcard .cover{position:relative;aspect-ratio:2/3;overflow:hidden}
+.pcard .cover img{width:100%;height:100%;object-fit:cover;display:block}
+.pcard .cover::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 52%,rgba(10,16,30,.72) 100%)}
+.pcard .badge{position:absolute;left:8px;top:8px;z-index:2;font-size:9px;padding:3px 7px;border-radius:4px;
+  background:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.58);color:#fff;font-weight:600;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.pcard .meta{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:26px 10px 9px}
+.pcard .meta .t{font-size:12.5px;font-weight:600;color:#fff;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pcard .meta .s{font-size:10px;color:rgba(255,255,255,.7);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pcard .bar{position:absolute;left:0;bottom:0;height:2px;width:48%;background:var(--brand);z-index:3}
+
+/* pills & buttons */
+.pill{border-radius:999px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.primary{height:44px;padding:0 20px;background:linear-gradient(135deg,#829AFF,#6C8AF0);color:#fff;font-size:14px;
+  box-shadow:0 8px 20px rgba(108,138,240,.34),inset 0 1px 0 rgba(255,255,255,.45);border:none}
+.glassbtn{height:44px;padding:0 20px;background:var(--l2-fill);border:1px solid var(--l2-line);color:var(--text);
+  font-size:14px;box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.8);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.dark .glassbtn{box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.2);color:var(--text)}
+.chip{height:30px;padding:0 12px;font-size:12px;border-radius:999px;display:inline-flex;align-items:center;
+  background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.55);color:var(--text-2);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.dark .chip{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.13)}
+.chip.on{background:rgba(108,138,240,.14);border-color:rgba(108,138,240,.55);color:var(--brand);font-weight:600}
+.dark .chip.on{background:rgba(142,165,255,.16);border-color:rgba(142,165,255,.5);color:var(--brand)}
+
+/* detail */
+.detail-hero{position:relative;height:252px;overflow:hidden}
+.detail-hero .backdrop{position:absolute;inset:0}
+.detail-hero .backdrop img{width:100%;height:100%;object-fit:cover;filter:blur(26px) saturate(.95);transform:scale(1.12)}
+.detail-hero .veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(11,14,22,.34) 0%,rgba(11,14,22,.10) 40%,var(--bg) 100%)}
+.detail-body{position:relative;z-index:4;margin-top:-64px;padding:0 16px}
+.dtitle{font-size:28px;line-height:1.2;font-weight:650;letter-spacing:-.02em;color:var(--text);margin:0 0 6px}
+.dmeta{font-size:12px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.actions{display:flex;gap:10px;align-items:center;margin:16px 0 14px}
+.actions .primary{flex:1;max-width:240px}
+.line-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.line-row .lbl{font-size:11px;color:var(--text-3)}
+
+/* episode grid */
+.eps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ep{height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:500;color:var(--text-2);
+  background:rgba(255,255,255,.26);border:1px solid rgba(255,255,255,.42);font-variant-numeric:tabular-nums}
+.dark .ep{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.10)}
+.ep.on{background:rgba(108,138,240,.14);border-color:rgba(108,138,240,.55);color:var(--brand);font-weight:650}
+.dark .ep.on{background:rgba(142,165,255,.16);border-color:rgba(142,165,255,.5)}
+.ep.seen{color:var(--text-4)}
+
+/* bottom fixed bar */
+.fixbar{position:absolute;left:0;right:0;bottom:0;z-index:9;padding:12px 16px 26px;
+  background:linear-gradient(180deg,rgba(242,244,250,0),rgba(242,244,250,.92) 40%);
+}
+.dark .fixbar{background:linear-gradient(180deg,rgba(11,14,22,0),rgba(11,14,22,.94) 40%)}
+.fixbar .primary{width:100%;height:48px;font-size:15px}
+
+/* player */
+.player{position:absolute;inset:0;background:#05070C;overflow:hidden}
+.player .pic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.86}
+.player .dim{position:absolute;inset:0;background:radial-gradient(80% 60% at 50% 42%,rgba(5,7,12,.32),rgba(5,7,12,.9) 100%)}
+.ptop{position:absolute;left:0;right:0;top:0;height:92px;padding:38px 12px 0;display:flex;align-items:center;gap:10px;
+  background:linear-gradient(180deg,rgba(8,11,18,.78),rgba(8,11,18,0));
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+.ptop .t{flex:1;color:#fff;font-size:14px;font-weight:600;line-height:1.3}
+.ptop .s{color:rgba(255,255,255,.6);font-size:10.5px;margin-top:2px}
+.pctl{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:22px}
+.pbtn{display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.9)}
+.pbtn.main{width:62px;height:62px;border-radius:999px;background:rgba(255,255,255,.30);
+  border:1px solid rgba(255,255,255,.55);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  box-shadow:0 12px 32px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.6)}
+.pbtn.side{width:44px;height:44px;border-radius:999px;background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.26);font-size:11px;font-weight:600;letter-spacing:.02em}
+.pbottom{position:absolute;left:0;right:0;bottom:0;padding:0 16px 24px;
+  background:linear-gradient(180deg,rgba(8,11,18,0),rgba(8,11,18,.88) 46%)}
+.ptrack{height:2px;border-radius:2px;background:rgba(255,255,255,.28);position:relative;margin:0 0 10px}
+.ptrack .buf{position:absolute;left:0;top:0;height:100%;width:78%;background:rgba(255,255,255,.22)}
+.ptrack .now{position:absolute;left:0;top:-2px;height:4px;width:54%;border-radius:3px;background:linear-gradient(90deg,#8EA5FF,#6C8AF0)}
+.ptrack .knob{position:absolute;left:54%;top:-6px;width:10px;height:10px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.ptime{display:flex;justify-content:space-between;font-size:10.5px;color:rgba(255,255,255,.68);font-variant-numeric:tabular-nums}
+.pacts{display:flex;justify-content:flex-end;gap:4px;margin-top:10px}
+.pact{width:40px;height:40px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;color:rgba(255,255,255,.85);font-size:9px}
+.pact svg{width:16px;height:16px;opacity:.9}
+.sheethandle{position:absolute;left:50%;transform:translateX(-50%);bottom:6px;width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.45)}
+.speedcap{position:absolute;left:50%;top:26%;transform:translateX(-50%);
+  padding:7px 14px;border-radius:999px;font-size:12px;font-weight:650;color:#fff;letter-spacing:.02em;
+  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 8px 24px rgba(0,0,0,.35);
+  display:flex;align-items:center;gap:6px}
+.speedcap i{width:5px;height:5px;border-radius:50%;background:#8EA5FF;display:block}
+
+/* sources */
+.srcrow{display:flex;align-items:center;gap:12px;height:64px;padding:0 14px;border-radius:16px;margin-bottom:10px;
+  background:var(--l1-fill);border:1px solid var(--l1-line);box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.9)}
+.dark .srcrow{box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.2)}
+.srcrow .av{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:650;color:var(--brand);
+  background:linear-gradient(135deg,rgba(108,138,240,.18),rgba(175,160,232,.14));
+  border:1px solid rgba(255,255,255,.55)}
+.dark .srcrow .av{border-color:rgba(255,255,255,.16)}
+.srcrow .txt{flex:1;min-width:0}
+.srcrow .n{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--text)}
+.srcrow .n .dot{width:6px;height:6px;border-radius:50%;background:#4FA98D;box-shadow:0 0 0 3px rgba(79,169,141,.14)}
+.srcrow .n .dot.warn{background:#D9A24F;box-shadow:0 0 0 3px rgba(217,162,79,.14)}
+.srcrow .n .dot.bad{background:#D96A66;box-shadow:0 0 0 3px rgba(217,106,102,.14)}
+.srcrow .m{font-size:10.5px;color:var(--text-3);margin-top:3px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.tag{font-size:8.5px;font-weight:650;letter-spacing:.06em;padding:2px 5px;border-radius:4px;
+  background:rgba(108,138,240,.14);color:var(--brand);border:1px solid rgba(108,138,240,.22)}
+.tag.js{background:rgba(217,162,79,.14);color:#B07A2C;border-color:rgba(217,162,79,.24)}
+.tag.py{background:rgba(111,201,184,.16);color:#2F8C77;border-color:rgba(111,201,184,.28)}
+.tag.jar{background:rgba(175,160,232,.16);color:#6C56B8;border-color:rgba(175,160,232,.28)}
+.dark .tag.js{color:#E3B874}
+.dark .tag.py{color:#8FE0CE}
+.dark .tag.jar{color:#C7B8FF}
+.switch{width:40px;height:24px;border-radius:999px;background:linear-gradient(135deg,#829AFF,#6C8AF0);position:relative;flex:0 0 auto;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.switch::after{content:"";position:absolute;right:2px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 6px rgba(23,32,64,.2)}
+.switch.off{background:rgba(140,150,170,.28);box-shadow:none}
+.dark .switch.off{background:rgba(255,255,255,.12)}
+.switch.off::after{right:auto;left:2px;background:rgba(255,255,255,.85)}
+
+/* search */
+.searchfield{display:flex;align-items:center;gap:10px;height:46px;padding:0 14px;border-radius:999px;
+  background:var(--l2-fill);border:1px solid var(--l2-line);box-shadow:var(--sh-md),inset 0 1px 0 rgba(255,255,255,.8);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.searchfield .ph{flex:1;font-size:13.5px;color:var(--text-3)}
+.searchfield .cursor{width:1px;height:16px;background:var(--brand);opacity:.85}
+.chiprow{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.resrow{display:flex;gap:12px;align-items:center;padding:10px 0}
+.resrow .thumb{flex:0 0 48px;width:48px;height:64px;border-radius:10px;overflow:hidden;position:relative;box-shadow:var(--sh-sm)}
+.resrow .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.resrow .txt{flex:1;min-width:0}
+.resrow .t{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.resrow .m{font-size:10.5px;color:var(--text-3);margin-top:4px;display:flex;gap:6px;align-items:center}
+.resrow .go{width:32px;height:32px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.3);border:1px solid rgba(255,255,255,.5);color:var(--text-2)}
+.dark .resrow .go{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.14)}
+.hist{display:flex;flex-wrap:wrap;gap:8px}
+.divider{height:1px;background:var(--hair);margin:10px 0}
+
+/* skeleton / empty / error */
+.skel{border-radius:16px;overflow:hidden;position:relative;
+  background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4)}
+.dark .skel{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10)}
+.skel .box{position:relative;overflow:hidden;background:rgba(255,255,255,.24)}
+.dark .skel .box{background:rgba(255,255,255,.08)}
+.skel .box::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.55) 50%,transparent 80%);
+  animation:shimmer 1.2s linear infinite}
+.dark .skel .box::after{background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.16) 50%,transparent 80%)}
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.skline{height:11px;border-radius:6px;background:rgba(255,255,255,.34)}
+.dark .skline{background:rgba(255,255,255,.1)}
+
+.statecard{position:relative;border-radius:20px;padding:26px 22px;text-align:center;
+  background:var(--l2-fill);border:1px solid var(--l2-line);box-shadow:var(--sh-lg),inset 0 1px 0 rgba(255,255,255,.85)}
+.dark .statecard{box-shadow:var(--sh-lg),inset 0 1px 0 rgba(255,255,255,.22)}
+.statecard .ic{width:56px;height:56px;border-radius:16px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,rgba(108,138,240,.16),rgba(175,160,232,.12));border:1px solid rgba(255,255,255,.6);color:var(--brand)}
+.dark .statecard .ic{border-color:rgba(255,255,255,.14)}
+.statecard h4{margin:0 0 6px;font-size:16px;font-weight:650;color:var(--text)}
+.statecard p{margin:0 auto 16px;font-size:12px;line-height:1.7;color:var(--text-3);max-width:220px}
+.statecard.err .ic{background:rgba(217,106,102,.12);border-color:rgba(217,106,102,.24);color:#D96A66}
+.dark .statecard.err .ic{color:#E88A85}
+
+/* bottom sheet */
+.scrim{position:absolute;inset:0;background:rgba(6,10,18,.34);z-index:10}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:11;border-radius:28px 28px 0 0;padding:26px 20px 30px;
+  background:var(--l3-fill);border:1px solid var(--l3-line);border-bottom:none;
+  backdrop-filter:blur(28px) saturate(1.12);-webkit-backdrop-filter:blur(28px) saturate(1.12);
+  box-shadow:0 -16px 48px rgba(23,32,64,.22),inset 0 1px 0 rgba(255,255,255,.94)}
+.dark .sheet{box-shadow:0 -16px 48px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.24);background:rgba(16,20,31,.86)}
+.sheet .handle{width:36px;height:4px;border-radius:2px;background:rgba(20,26,44,.22);margin:-12px auto 16px}
+.dark .sheet .handle{background:rgba(255,255,255,.28)}
+.sheet h4{margin:0 0 4px;font-size:17px;font-weight:650;color:var(--text)}
+.sheet .sub{font-size:11px;color:var(--text-3);margin-bottom:16px}
+.opt{display:flex;align-items:center;gap:12px;padding:13px 0}
+.opt .ic2{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  background:rgba(108,138,240,.12);border:1px solid rgba(108,138,240,.2);color:var(--brand)}
+.opt .txt{flex:1}
+.opt .t{font-size:14px;font-weight:600;color:var(--text)}
+.opt .d{font-size:10.5px;color:var(--text-3);margin-top:3px}
+.opt .arrow{color:var(--text-3);font-size:12px}
+.sheetinput{height:44px;border-radius:12px;display:flex;align-items:center;padding:0 12px;gap:8px;font-size:12.5px;color:var(--text-3);
+  background:rgba(255,255,255,.34);border:1px solid rgba(255,255,255,.55)}
+.dark .sheetinput{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12)}
+
+/* toast */
+.toast{display:flex;align-items:center;gap:9px;padding:11px 16px;border-radius:16px;
+  background:var(--l3-fill);border:1px solid var(--l3-line);color:var(--text);font-size:12.5px;
+  box-shadow:var(--sh-xl),inset 0 1px 0 rgba(255,255,255,.9);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px)}
+.dark .toast{box-shadow:var(--sh-xl),inset 0 1px 0 rgba(255,255,255,.22)}
+.toast .ok{width:16px;height:16px;border-radius:50%;background:rgba(79,169,141,.2);color:#4FA98D;
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+
+/* misc */
+.gap4{height:4px}.gap8{height:8px}.gap12{height:12px}.gap16{height:16px}.gap20{height:20px}
+.row{display:flex;align-items:center}
+.small{font-size:10px;color:var(--text-3)}
+.fade-bottom{position:absolute;left:0;right:0;bottom:0;height:64px;z-index:4;pointer-events:none;
+  background:linear-gradient(180deg,transparent,var(--bg))}
+
+/* notes */
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}
+.note{padding:18px 20px;border-radius:16px;background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.68);
+  box-shadow:0 8px 24px rgba(23,32,64,.06);backdrop-filter:blur(14px)}
+.note b{display:block;font-size:12.5px;color:#1B2233;margin-bottom:6px;font-weight:650}
+.note p{margin:0;font-size:11.5px;line-height:1.75;color:#6B7690}
+
+.footer{margin-top:72px;padding-top:24px;border-top:1px solid rgba(27,34,51,.08);
+  display:flex;justify-content:space-between;font-size:11px;color:#7C879C}
+
+@media (max-width:820px){
+  body{padding:32px 16px 64px}
+  .page-head h1{font-size:30px}
+  .board{grid-template-columns:1fr;padding:20px}
+  .swatches{grid-template-columns:repeat(3,1fr)}
+  .scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .frames{flex-wrap:nowrap;overflow-x:auto;padding-bottom:16px}
+  .notes{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ======================= HEAD ======================= -->
+  <header class="page-head">
+    <div class="kicker"><i></i> DESIGN REFERENCE · v1.0</div>
+    <h1>柔光玻璃 <em>Soft Glass</em><br>TVBox 类影音应用视觉基线</h1>
+    <p>以低饱和柔光为底、以半透明玻璃分层、以胶囊为交互语言。本页为可直接对照实现的视觉稿：所有尺寸基于 375 × 812 dp，亮色与暗色同构。</p>
+    <div class="meta-row">
+      <span>背景：三层径向柔光</span>
+      <span>玻璃：L1–L4 · blur 12/20/28/32</span>
+      <span>正文对比 ≥ 4.5:1</span>
+      <span>动效 120–320ms</span>
+      <span>触控 ≥ 44dp</span>
+    </div>
+  </header>
+
+  <!-- ======================= TOKENS ======================= -->
+  <div class="sec-head">
+    <div class="no">01</div>
+    <h2>视觉令牌</h2>
+    <p class="desc">色板、玻璃层级映射、字体层级、圆角与间距。数值即实现值。</p>
+  </div>
+
+  <div class="board">
+    <!-- colors -->
+    <div>
+      <h3>亮色 · 基础色板</h3>
+      <div class="swatches">
+        <div class="sw"><div class="chip" style="background:#F2F4FA"></div><div class="cap"><b>bg.base</b>#F2F4FA</div></div>
+        <div class="sw"><div class="chip" style="background:linear-gradient(135deg,#DCE7FF,#F6E6F3)"></div><div class="cap"><b>glow a/b</b>#DCE7FF · #F6E6F3</div></div>
+        <div class="sw"><div class="chip" style="background:#6C8AF0"></div><div class="cap"><b>brand</b>#6C8AF0</div></div>
+        <div class="sw"><div class="chip" style="background:#6FC9B8"></div><div class="cap"><b>secondary</b>#6FC9B8</div></div>
+        <div class="sw"><div class="chip" style="background:#EDA79E"></div><div class="cap"><b>warm</b>#EDA79E</div></div>
+        <div class="sw"><div class="chip" style="background:#1B2233"></div><div class="cap"><b>text.primary</b>#1B2233</div></div>
+        <div class="sw"><div class="chip" style="background:#4C566B"></div><div class="cap"><b>text.secondary</b>#4C566B</div></div>
+        <div class="sw"><div class="chip" style="background:#79839A"></div><div class="cap"><b>text.tertiary</b>#79839A</div></div>
+        <div class="sw"><div class="chip" style="background:#D96A66"></div><div class="cap"><b>error</b>#D96A66</div></div>
+        <div class="sw"><div class="chip" style="background:#D9A24F"></div><div class="cap"><b>warning</b>#D9A24F</div></div>
+        <div class="sw"><div class="chip" style="background:#4FA98D"></div><div class="cap"><b>success</b>#4FA98D</div></div>
+        <div class="sw"><div class="chip" style="background:linear-gradient(135deg,#829AFF,#6C8AF0)"></div><div class="cap"><b>primary.cta</b>渐变</div></div>
+      </div>
+
+      <h3 style="margin-top:28px">暗色 · 基础色板</h3>
+      <div class="swatches">
+        <div class="sw"><div class="chip" style="background:#0B0E16"></div><div class="cap"><b>bg.base</b>#0B0E16</div></div>
+        <div class="sw"><div class="chip" style="background:linear-gradient(135deg,#1C2B52,#2A1F3E)"></div><div class="cap"><b>glow a/b</b>#1C2B52 · #2A1F3E</div></div>
+        <div class="sw"><div class="chip" style="background:#8EA5FF"></div><div class="cap"><b>brand</b>#8EA5FF</div></div>
+        <div class="sw"><div class="chip" style="background:#7ED7C6"></div><div class="cap"><b>secondary</b>#7ED7C6</div></div>
+        <div class="sw"><div class="chip" style="background:#ECF1FA"></div><div class="cap"><b>text.primary</b>#ECF1FA</div></div>
+        <div class="sw"><div class="chip" style="background:#A8B3C7"></div><div class="cap"><b>text.secondary</b>#A8B3C7</div></div>
+        <div class="sw"><div class="chip" style="background:#7C879C"></div><div class="cap"><b>text.tertiary</b>#7C879C</div></div>
+        <div class="sw"><div class="chip" style="background:#E88A85"></div><div class="cap"><b>error</b>#E88A85</div></div>
+      </div>
+    </div>
+
+    <!-- glass levels -->
+    <div>
+      <h3>玻璃层级映射 L1–L4</h3>
+      <div class="glass-demo">
+        <div class="gd g1"><div class="inner"><div class="lv">L1 · 12dp</div>卡面玻璃<br>填充 42%</div></div>
+        <div class="gd g2"><div class="inner"><div class="lv">L2 · 20dp</div>浮起玻璃<br>填充 52%</div></div>
+        <div class="gd g3"><div class="inner"><div class="lv">L3 · 28dp</div>模态玻璃<br>填充 62%</div></div>
+        <div class="gd g4"><div class="inner"><div class="lv">L4 · 32dp</div>遮罩导航<br>+scrim</div></div>
+      </div>
+
+      <h3 style="margin-top:26px">字体层级</h3>
+      <div class="type-row">
+        <div class="tr"><span class="s">display 28/34</span><span style="font-size:26px;font-weight:650;letter-spacing:-.5px;color:#1B2233">示例剧集 C</span></div>
+        <div class="tr"><span class="s">h2 17/24 · 600</span><span style="font-size:17px;font-weight:600;color:#1B2233">继续观看</span></div>
+        <div class="tr"><span class="s">body 15/22</span><span style="font-size:15px;color:#4C566B">示例影片 A · 2024 · 示例地区</span></div>
+        <div class="tr"><span class="s">caption 13/18</span><span style="font-size:13px;color:#4C566B">更新至 12 集 · 国语</span></div>
+        <div class="tr" style="border-bottom:none"><span class="s">label 11/14 · 500</span><span style="font-size:11px;font-weight:500;letter-spacing:.3px;color:#79839A">来源 · 示例站·JS · 128ms</span></div>
+      </div>
+
+      <h3 style="margin-top:22px">圆角与间距</h3>
+      <div class="radii">
+        <div class="rad" style="border-radius:4px">4</div>
+        <div class="rad" style="border-radius:8px">8</div>
+        <div class="rad" style="border-radius:12px">12</div>
+        <div class="rad" style="border-radius:16px">16</div>
+        <div class="rad" style="border-radius:20px">20</div>
+        <div class="rad" style="border-radius:28px">28</div>
+        <div class="rad" style="border-radius:999px">pill</div>
+      </div>
+      <div class="spacing">
+        <i style="width:4px"></i><i style="width:8px"></i><i style="width:12px"></i><i style="width:16px"></i>
+        <i style="width:20px"></i><i style="width:24px"></i><i style="width:32px"></i><i style="width:40px"></i>
+        <span>4 · 8 · 12 · 16 · 20 · 24 · 32 · 40</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================= FRAMES ======================= -->
+  <div class="sec-head">
+    <div class="no">02</div>
+    <h2>实态屏</h2>
+    <p class="desc">首页 / 详情 / 播放 / 源管理 / 搜索 / 三态 / 导入面板 / 暗色首页。</p>
+  </div>
+
+  <div class="frames">
+
+    <!-- ---------- 1. HOME LIGHT ---------- -->
+    <div class="frame-unit">
+      <div class="phone">
+        <div class="glowbg"></div>
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span>
+            <span class="ico">
+              <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" opacity=".8"><rect x="0" y="7" width="2.5" height="4" rx="1"/><rect x="4" y="5" width="2.5" height="6" rx="1"/><rect x="8" y="2.5" width="2.5" height="8.5" rx="1"/><rect x="12" y="0" width="2.5" height="11" rx="1"/></svg>
+              <svg width="15" height="11" viewBox="0 0 24 24" fill="currentColor" opacity=".8"><path d="M12 19.5l-4.2-4.2a6 6 0 018.4 0z"/><path d="M3.5 10.5a12 12 0 0117 0l-1.6 1.6a9.6 9.6 0 00-13.8 0z" opacity=".6"/></svg>
+              <span class="bat"></span>
+            </span>
+          </div>
+
+          <div class="topbar">
+            <div class="title">发现</div>
+            <div class="acts">
+              <div class="iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg></div>
+              <div class="iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 13a8 8 0 11-9-9 6.5 6.5 0 009 9z"/></svg></div>
+            </div>
+          </div>
+
+          <!-- 继续观看 -->
+          <div class="sect">
+            <div class="sect-head">
+              <h3>继续观看</h3>
+              <div class="more">全部 ›</div>
+            </div>
+            <div class="hrow">
+              <div class="hcard">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cinematic%20still%2C%20quiet%20mountain%20ridge%20at%20dusk%2C%20soft%20pink%20and%20blue%20haze%2C%20no%20text&image_size=landscape_16_9" alt="">
+                <div class="badge">第 8 集</div>
+                <div class="bottom">
+                  <div class="t">示例剧集 C</div>
+                  <div class="m">已看 12 分钟 · 剩余 18 分钟</div>
+                </div>
+                <div class="prog"></div>
+              </div>
+              <div class="hcard">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cinematic%20still%2C%20rain%20on%20city%20window%20at%20night%2C%20soft%20teal%20bokeh%2C%20no%20text&image_size=landscape_16_9" alt="">
+                <div class="badge">32%</div>
+                <div class="bottom">
+                  <div class="t">示例影片 B</div>
+                  <div class="m">已看 32 分钟 · 剩余 68 分钟</div>
+                </div>
+                <div class="prog" style="width:32%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 今日推荐 -->
+          <div class="sect" style="margin-top:14px">
+            <div class="sect-head">
+              <h3>今日推荐</h3>
+              <div class="more">换一批 ↻</div>
+            </div>
+            <div class="hero">
+              <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cinematic%20aerial%20view%2C%20quiet%20city%20at%20blue%20hour%2C%20soft%20glow%20and%20pastel%20mist%2C%20no%20text&image_size=landscape_16_9" alt="">
+              <div class="dots"><i class="on"></i><i></i><i></i></div>
+              <div class="info">
+                <div class="txt">
+                  <div class="t">示例影片 A</div>
+                  <div class="m">2024 · 示例地区 · 剧情 · 更新至 12 集</div>
+                </div>
+                <div class="pill primary" style="height:36px;padding:0 16px;font-size:12.5px">▶ 播放</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 分区网格 -->
+          <div class="sect" style="margin-top:16px">
+            <div class="sect-head">
+              <h3>热门推荐</h3>
+              <div class="more">更多 ›</div>
+            </div>
+            <div class="grid">
+              <div class="pcard">
+                <div class="cover">
+                  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20cinematic%20poster%20art%2C%20soft%20teal%20and%20lavender%20gradient%2C%20glowing%20mist%20over%20layered%20hills%2C%20minimal%2C%20no%20text&image_size=portrait_4_3" alt="">
+                  <div class="badge">更新至 12 集</div>
+                  <div class="meta"><div class="t">示例剧集 D</div><div class="s">剧情 · 2024</div></div>
+                </div>
+              </div>
+              <div class="pcard">
+                <div class="cover">
+                  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20sci-fi%20poster%2C%20deep%20indigo%20nebula%20with%20soft%20glowing%20orb%2C%20fine%20stars%2C%20minimal%2C%20no%20text&image_size=portrait_4_3" alt="">
+                  <div class="badge">全 24 集</div>
+                  <div class="meta"><div class="t">示例影片 E</div><div class="s">科幻 · 2023</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fade-bottom"></div>
+      </div>
+      <div class="caption">
+        <h4>首页 · 亮色</h4>
+        <p>三段式：继续观看 → 今日推荐 → 分区双列。海报严格 2:3，横滑卡 16:9；所有图上文字均有底部 scrim。</p>
+        <div class="tagline">内容优先 · 源不占首屏</div>
+      </div>
+    </div>
+
+    <!-- ---------- 2. DETAIL ---------- -->
+    <div class="frame-unit">
+      <div class="phone">
+        <div class="glowbg"></div>
+        <div class="screen">
+          <div class="status">
+            <span>9:41</span>
+            <span class="ico"><span class="bat"></span></span>
+          </div>
+
+          <div class="detail-hero">
+            <div class="backdrop">
+              <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20cinematic%20poster%2C%20soft%20violet%20and%20mint%20mist%2C%20glowing%20horizon%2C%20minimal%2C%20no%20text&image_size=portrait_4_3" alt="">
+            </div>
+            <div class="veil"></div>
+            <div style="position:absolute;left:16px;top:8px;z-index:6;display:flex;gap:8px">
+              <div class="iconbtn" style="background:rgba(255,255,255,.26);border-color:rgba(255,255,255,.4);color:#fff">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5L8 12l7 7"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-body">
+            <h2 class="dtitle">示例影片 A</h2>
+            <div class="dmeta">2024 · 示例地区 · 剧情 · 已完结 · 12 集</div>
+
+            <div class="actions">
+              <div class="pill primary" style="flex:1">▶ 继续观看 第 8 集</div>
+              <div class="pill glassbtn" style="padding:0 16px;width:44px;padding:0">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 5v14M5 12h14"/></svg>
+              </div>
+              <div class="pill glassbtn" style="width:44px;padding:0">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 12v7h7M20 12v-7h-7"/><path d="M20 12a8 8 0 00-14-5M4 12a8 8 0 0014 5"/></svg>
+              </div>
+            </div>
+
+            <div class="line-row">
+              <div class="pill glassbtn" style="height:34px;padding:0 14px;font-size:12.5px">
+                示例线路一 ▾
+              </div>
+              <div class="lbl">3 个源可用 · 128ms</div>
+            </div>
+
+            <div class="sect-head" style="height:30px">
+              <h3 style="font-size:15px">选集 <span style="font-size:11px;color:#79839A;font-weight:500">共 12 集</span></h3>
+              <div class="more">倒序 ⇅</div>
+            </div>
+            <div class="eps" style="margin-top:10px">
+              <div class="ep seen">1</div><div class="ep seen">2</div><div class="ep seen">3</div><div class="ep seen">4</div>
+              <div class="ep seen">5</div><div class="ep seen">6</div><div class="ep seen">7</div><div class="ep on">8</div>
+              <div class="ep">9</div><div class="ep">10</div><div class="ep">11</div><div class="ep">12</div>
+            </div>
+
+            <div class="sect-head" style="height:34px;margin-top:14px">
+              <h3 style="font-size:15px">简介</h3>
+              <div class="more">展开 ›</div>
+            </div>
+            <div style="font-size:12px;line-height:1.7;color:#6B7690;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">
+              这是一段用于演示字段与排版的示例简介文本。它描述了一个并不存在的故事，包含示例角色与示例地点，仅用于验证行高、截断与层级关系。
+            </div>
+          </div>
+
+          <div class="fixbar">
+            <div class="pill primary" style="width:100%;height:48px;font-size:15px">▶ 从第 8 集继续</div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <h4>详情 · 亮色</h4>
+        <p>信息优先级固定：头图 → 标题/元信息 → 主操作 → 线路 → 选集 → 简介 → 相关。头图模糊铺底并向下渐隐到页面底色。</p>
+        <div class="tagline">先决策，再消费</div>
+      </div>
+    </div>
+
+    <!-- ---------- 3. PLAYER ---------- -->
+    <div class="frame-unit dark">
+      <div class="phone">
+        <div class="player">
+          <img class="pic" src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cinematic%20film%20still%2C%20misty%20forest%20lake%20at%20dawn%2C%20soft%20pastel%20light%2C%20no%20text&image_size=landscape_16_9" alt="">
+          <div class="dim"></div>
+
+          <div class="ptop">
+            <div class="pbtn" style="width:34px">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5L8 12l7 7"/></svg>
+            </div>
+            <div class="t">示例剧集 C
+              <div class="s">示例线路一 · 第 8 集 · 1080P</div>
+            </div>
+            <div class="pbtn" style="width:34px">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg>
+            </div>
+          </div>
+
+          <div class="speedcap"><i></i>2.0× 长按倍速</div>
+
+          <div class="pctl">
+            <div class="pbtn side">−10s</div>
+            <div class="pbtn main">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M7 4l12 8-12 8z"/></svg>
+            </div>
+            <div class="pbtn side">+10s</div>
+          </div>
+
+          <div class="pbottom">
+            <div class="ptrack">
+              <div class="buf"></div>
+              <div class="now"></div>
+              <div class="knob"></div>
+            </div>
+            <div class="ptime"><span>18:24</span><span>-14:52 / 33:16</span></div>
+            <div class="pacts">
+              <div class="pact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 9h8M8 13h8"/></svg>
+                选集
+              </div>
+              <div class="pact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                倍速
+              </div>
+              <div class="pact" style="color:#8EA5FF">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7h16M4 12h10M4 17h13"/></svg>
+                线路
+              </div>
+              <div class="pact">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 9V4h5M20 15v5h-5"/><path d="M4 4l7 7M20 20l-7-7"/></svg>
+                全屏
+              </div>
+            </div>
+            <div class="sheethandle"></div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <h4>播放器 · 暗色</h4>
+        <p>控制条分三层：顶部 L4 遮罩条、中央 64dp 玻璃主钮、底部进度与四宫格。2.8s 自动隐藏，长按 2× 显示玻璃胶囊。</p>
+        <div class="tagline">控件即隐形 · 手势优先</div>
+      </div>
+    </div>
+
+    <!-- ---------- 4. SOURCES ---------- -->
+    <div class="frame-unit">
+      <div class="phone">
+        <div class="glowbg"></div>
+        <div class="screen">
+          <div class="status"><span>9:41</span><span class="ico"><span class="bat"></span></span></div>
+
+          <div class="topbar">
+            <div class="title" style="font-size:20px">源管理</div>
+            <div class="acts">
+              <div class="iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 5v14M5 12h14"/></svg></div>
+            </div>
+          </div>
+
+          <div class="sect" style="margin-top:2px">
+            <div class="l2" style="border-radius:16px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:11.5px;color:var(--text-2)">已启用 <b style="color:var(--text)">5</b> · 可用 <b style="color:#4FA98D">4</b> · 平均延迟 <b style="color:var(--text)">142ms</b></span>
+              <span style="font-size:10.5px;color:var(--text-3)">检测全部 ↻</span>
+            </div>
+
+            <div class="gap16"></div>
+
+            <div class="srcrow">
+              <div class="av">示</div>
+              <div class="txt">
+                <div class="n"><span class="dot"></span>示例站 · JSON</div>
+                <div class="m"><span class="tag">JSON</span> 128ms · 12 个站点 · 来自 示例订阅</div>
+              </div>
+              <div class="switch"></div>
+            </div>
+
+            <div class="srcrow">
+              <div class="av" style="color:#6C56B8">J</div>
+              <div class="txt">
+                <div class="n"><span class="dot"></span>示例站 · Spider</div>
+                <div class="m"><span class="tag jar">JAR</span> 96ms · 8 个站点</div>
+              </div>
+              <div class="switch"></div>
+            </div>
+
+            <div class="srcrow">
+              <div class="av" style="color:#B07A2C">JS</div>
+              <div class="txt">
+                <div class="n"><span class="dot"></span>示例站 · JS</div>
+                <div class="m"><span class="tag js">JS</span> 204ms · 沙箱 QuickJS · 6 个站点</div>
+              </div>
+              <div class="switch"></div>
+            </div>
+
+            <div class="srcrow">
+              <div class="av" style="color:#2F8C77">PY</div>
+              <div class="txt">
+                <div class="n"><span class="dot warn"></span>示例站 · PY</div>
+                <div class="m"><span class="tag py">PY</span> 超时 3.2s · 已回退缓存</div>
+              </div>
+              <div class="switch off"></div>
+            </div>
+
+            <div class="srcrow" style="opacity:.86">
+              <div class="av" style="color:#B8464A">仓</div>
+              <div class="txt">
+                <div class="n"><span class="dot bad"></span>示例仓库 A · 聚合</div>
+                <div class="m"><span class="tag">JSON</span> 解析失败 · 缺 sites 字段 · <span style="color:#D96A66">查看原因 ›</span></div>
+              </div>
+              <div class="switch off"></div>
+            </div>
+
+            <div class="gap12"></div>
+            <div class="l1" style="border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px">
+              <div style="width:26px;height:26px;border-radius:8px;background:rgba(108,138,240,.14);display:flex;align-items:center;justify-content:center;color:#6C8AF0;font-size:12px">ⓘ</div>
+              <div style="font-size:10.5px;line-height:1.6;color:var(--text-3);flex:1">源由用户自行提供，应用仅作为播放器。导入前会先校验格式并展示预览。</div>
+            </div>
+          </div>
+
+          <div class="fixbar">
+            <div class="pill primary" style="width:100%;height:48px;font-size:15px">＋ 导入新源</div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <h4>源管理 · 亮色</h4>
+        <p>源卡片 = 首字母玻璃块 + 状态点 + 类型标签 + 延迟 + 开关。异常内联说明且可展开，不弹窗打断。</p>
+        <div class="tagline">状态可见 · 失败可恢复</div>
+      </div>
+    </div>
+
+    <!-- ---------- 5. SEARCH ---------- -->
+    <div class="frame-unit">
+      <div class="phone">
+        <div class="glowbg"></div>
+        <div class="screen">
+          <div class="status"><span>9:41</span><span class="ico"><span class="bat"></span></span></div>
+
+          <div style="padding:6px 16px 0;position:relative;z-index:5;display:flex;gap:10px;align-items:center">
+            <div class="searchfield" style="flex:1">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-3)"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+              <span class="ph" style="color:var(--text)">示例</span>
+              <span class="cursor"></span>
+              <span style="width:18px;height:18px;border-radius:50%;background:rgba(120,132,154,.2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text-3)">✕</span>
+            </div>
+            <div style="font-size:13px;color:var(--text-2);font-weight:500">取消</div>
+          </div>
+
+          <div class="sect" style="margin-top:12px">
+            <div class="chiprow">
+              <div class="chip on">全部</div>
+              <div class="chip">电影</div>
+              <div class="chip">剧集</div>
+              <div class="chip">综艺</div>
+              <div class="chip">动漫</div>
+              <div class="chip">排序 ▾</div>
+            </div>
+          </div>
+
+          <div class="sect" style="margin-top:14px">
+            <div class="sect-head" style="height:26px">
+              <h3 style="font-size:13px;color:var(--text-3);font-weight:500">在 5 个源中搜索到 18 个结果</h3>
+            </div>
+
+            <div class="resrow">
+              <div class="thumb"><img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20poster%2C%20soft%20peach%20and%20mint%20gradient%2C%20floating%20islands%2C%20minimal%2C%20no%20text&image_size=portrait_4_3" alt=""></div>
+              <div class="txt">
+                <div class="t">示例影片 A</div>
+                <div class="m"><span class="tag">JSON</span> 示例站·JSON · 2024 · 剧情 <span style="color:var(--text-4)">·</span> 更新至 12 集</div>
+              </div>
+              <div class="go"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l7 7-7 7z"/></svg></div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="resrow">
+              <div class="thumb"><img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20thriller%20poster%2C%20dark%20teal%20fog%20and%20glass%20shards%2C%20cold%20light%2C%20minimal%2C%20no%20text&image_size=portrait_4_3" alt=""></div>
+              <div class="txt">
+                <div class="t">示例影片 B</div>
+                <div class="m"><span class="tag js">JS</span> 示例站·JS · 2023 · 悬疑 <span style="color:var(--text-4)">·</span> 全 24 集</div>
+              </div>
+              <div class="go"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l7 7-7 7z"/></svg></div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="resrow">
+              <div class="thumb"><img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20romantic%20drama%20poster%2C%20blurred%20bokeh%20lights%2C%20dusty%20rose%20and%20cream%2C%20minimal%2C%20no%20text&image_size=portrait_4_3" alt=""></div>
+              <div class="txt">
+                <div class="t">示例剧集 C</div>
+                <div class="m"><span class="tag py">PY</span> 示例站·PY · 2024 · 都市 <span style="color:var(--text-4)">·</span> 更新至 8 集</div>
+              </div>
+              <div class="go"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l7 7-7 7z"/></svg></div>
+            </div>
+            <div class="divider"></div>
+
+            <div class="resrow">
+              <div class="thumb"><img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20sci-fi%20poster%2C%20deep%20indigo%20nebula%20with%20soft%20glowing%20orb%2C%20minimal%2C%20no%20text&image_size=portrait_4_3" alt=""></div>
+              <div class="txt">
+                <div class="t">示例影片 E</div>
+                <div class="m"><span class="tag jar">JAR</span> 示例站·Spider · 2023 · 科幻 <span style="color:var(--text-4)">·</span> 全 24 集</div>
+              </div>
+              <div class="go"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l7 7-7 7z"/></svg></div>
+            </div>
+          </div>
+
+          <div class="sect" style="margin-top:18px">
+            <div class="small" style="margin-bottom:10px">最近搜索</div>
+            <div class="hist">
+              <div class="chip">示例关键词一</div>
+              <div class="chip">示例关键词二</div>
+              <div class="chip">示例剧集 C</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <h4>搜索 · 亮色</h4>
+        <p>搜索框 L2 玻璃胶囊；筛选 Chips 选中态用主色 14% 填充 + 55% 描边。结果显示来源类型标签，避免同名混淆。</p>
+        <div class="tagline">跨源聚合 · 结果标源</div>
+      </div>
+    </div>
+
+    <!-- ---------- 6. STATES DARK ---------- -->
+    <div class="frame-unit dark">
+      <div class="phone">
+        <div class="glowbg"></div>
+        <div class="screen">
+          <div class="status"><span>9:41</span><span class="ico"><span class="bat"></span></span></div>
+          <div class="topbar"><div class="title">发现</div></div>
+
+          <div class="sect">
+            <div class="sect-head"><h3>加载中 · 骨架</h3></div>
+            <div class="grid">
+              <div class="skel" style="height:214px">
+                <div class="box" style="height:100%"></div>
+              </div>
+              <div class="skel" style="height:214px">
+                <div class="box" style="height:100%"></div>
+              </div>
+            </div>
+
+            <div class="gap16"></div>
+
+            <div class="statecard">
+              <div class="ic">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 10h8M8 14h5"/>
+                </svg>
+              </div>
+              <h4>还没有内容</h4>
+              <p>导入一个源即可开始。支持 JSON 配置、JS 脚本与 PY 接口，也可从本地文件导入。</p>
+              <div class="pill primary" style="height:40px;font-size:13px;display:inline-flex">＋ 导入源</div>
+            </div>
+
+            <div class="gap12"></div>
+
+            <div class="statecard err">
+              <div class="ic">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>
+                </svg>
+              </div>
+              <h4>源响应超时</h4>
+              <p>示例站·PY 在 8 秒内未返回（已重试 2 次）。其他源不受影响，可先切换线路。</p>
+              <div style="display:flex;gap:10px;justify-content:center">
+                <div class="pill glassbtn" style="height:38px;padding:0 16px;font-size:12.5px">重试</div>
+                <div class="pill glassbtn" style="height:38px;padding:0 16px;font-size:12.5px">换线路</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="position:absolute;left:16px;right:16px;bottom:70px;z-index:8">
+            <div class="toast"><span class="ok">✓</span> 已导入 12 个源，可用 10 个</div>
+          </div>
+
+          <div style="position:absolute;left:16px;right:16px;bottom:14px;z-index:8">
+            <div class="l2" style="border-radius:28px;height:56px;display:flex;align-items:center;gap:10px;padding:0 10px 0 8px">
+              <div style="width:40px;height:40px;border-radius:10px;overflow:hidden;flex:0 0 auto">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cinematic%20still%2C%20misty%20forest%20lake%20at%20dawn%2C%20soft%20pastel%2C%20no%20text&image_size=landscape_16_9" style="width:100%;height:100%;object-fit:cover" alt="">
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">示例剧集 C · 第 8 集</div>
+                <div style="font-size:10px;color:var(--text-3);margin-top:2px">正在播放 · 18:24 / 33:16</div>
+              </div>
+              <div class="pbtn" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4l14 8-14 8z"/></svg>
+              </div>
+              <div class="pbtn" style="width:28px;height:28px;color:rgba(255,255,255,.6)">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </div>
+              <div style="position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:0 0 28px 28px;background:rgba(255,255,255,.14)">
+                <div style="width:54%;height:100%;background:#8EA5FF;border-radius:0 0 0 28px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <h4>三态 + 悬浮条 · 暗色</h4>
+        <p>上：骨架（1.2s shimmer）；中：空态与错误态，错误给出原因与两条恢复路径；下：L2 悬浮播放条，含 2dp 进度线。</p>
+        <div class="tagline">错误永远可恢复</div>
+      </div>
+    </div>
+
+    <!-- ---------- 7. IMPORT SHEET ---------- -->
+    <div class="frame-unit dark">
+      <div class="phone">
+        <div class="glowbg"></div>
+        <div class="screen">
+          <div class="status"><span>9:41</span><span class="ico"><span class="bat"></span></span></div>
+          <div class="topbar"><div class="title" style="font-size:20px">源管理</div></div>
+
+          <div class="sect" style="opacity:.35;filter:saturate(.9)">
+            <div class="srcrow">
+              <div class="av">示</div>
+              <div class="txt"><div class="n"><span class="dot"></span>示例站 · JSON</div><div class="m"><span class="tag">JSON</span> 128ms · 12 个站点</div></div>
+              <div class="switch"></div>
+            </div>
+            <div class="srcrow">
+              <div class="av" style="color:#6C56B8">J</div>
+              <div class="txt"><div class="n"><span class="dot"></span>示例站 · Spider</div><div class="m"><span class="tag jar">JAR</span> 96ms · 8 个站点</div></div>
+              <div class="switch"></div>
+            </div>
+          </div>
+
+          <div class="scrim"></div>
+
+          <div class="sheet" style="bottom:0">
+            <div class="handle"></div>
+            <h4>导入源</h4>
+            <div class="sub">先校验，再预览，最后确认。支持 JSON / JS / PY。</div>
+
+            <div class="sheetinput">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1"/><path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/></svg>
+              <span style="flex:1">https://example.com/api/vod/</span>
+              <span style="color:var(--brand);font-weight:600">粘贴</span>
+            </div>
+
+            <div class="gap16"></div>
+
+            <div class="l1" style="border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;border-radius:10px;background:rgba(111,201,184,.16);display:flex;align-items:center;justify-content:center;color:#7ED7C6;font-size:11px;font-weight:700">PY</div>
+              <div style="flex:1">
+                <div style="font-size:12.5px;font-weight:600;color:var(--text)">识别为 PY 源 · 示例站·PY</div>
+                <div style="font-size:10px;color:var(--text-3);margin-top:2px">契约校验通过 · 5 个函数 · 预计 6 个分类</div>
+              </div>
+              <div style="font-size:10px;color:#7ED7C6">可用</div>
+            </div>
+
+            <div class="gap12"></div>
+
+            <div class="opt">
+              <div class="ic2"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 12l2 2 4-4"/></svg></div>
+              <div class="txt"><div class="t">从链接导入</div><div class="d">拉取并自动识别配置 / 多仓 / 脚本</div></div>
+              <div class="arrow">›</div>
+            </div>
+            <div class="opt">
+              <div class="ic2"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="5" y="4" width="14" height="16" rx="3"/><path d="M9 4h6v3H9z"/></svg></div>
+              <div class="txt"><div class="t">从剪贴板</div><div class="d">识别 URL 或 JSON / 脚本文本</div></div>
+              <div class="arrow">›</div>
+            </div>
+            <div class="opt">
+              <div class="ic2"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 7a3 3 0 013-3h4l2 3h6a3 3 0 013 3v7a3 3 0 01-3 3H7a3 3 0 01-3-3z"/></svg></div>
+              <div class="txt"><div class="t">本地文件</div><div class="d">.json / .js / .py · ≤ 2MB</div></div>
+              <div class="arrow">›</div>
+            </div>
+            <div class="opt" style="padding-bottom:4px">
+              <div class="ic2"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM18 18h3v3h-3z"/></svg></div>
+              <div class="txt"><div class="t">扫码</div><div class="d">相机扫描二维码内容</div></div>
+              <div class="arrow">›</div>
+            </div>
+
+            <div class="gap12"></div>
+            <div class="pill primary" style="width:100%;height:48px;font-size:14.5px">导入并检测</div>
+          </div>
+        </div>
+      </div>
+      <div class="caption">
+        <h4>导入面板 · 暗色</h4>
+        <p>L3 玻璃面板（blur 28）+ 32% scrim，被压暗的底层仍保留玻璃质感。识别结果前置展示，确认后才写入。</p>
+        <div class="tagline">四种入口 · 预览先行</div>
+      </div>
+    </div>
+
+    <!-- ---------- 8. HOME DARK ---------- -->
+    <div class="frame-unit dark">
+      <div class="phone">
+        <div class="glowbg"></div>
+        <div class="screen">
+          <div class="status"><span>9:41</span><span class="ico">
+            <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor" opacity=".7"><rect x="0" y="7" width="2.5" height="4" rx="1"/><rect x="4" y="5" width="2.5" height="6" rx="1"/><rect x="8" y="2.5" width="2.5" height="8.5" rx="1"/><rect x="12" y="0" width="2.5" height="11" rx="1"/></svg>
+            <span class="bat"></span></span></div>
+
+          <div class="topbar">
+            <div class="title">发现</div>
+            <div class="acts">
+              <div class="iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg></div>
+              <div class="iconbtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg></div>
+            </div>
+          </div>
+
+          <div class="sect">
+            <div class="sect-head"><h3>继续观看</h3><div class="more">全部 ›</div></div>
+            <div class="hrow">
+              <div class="hcard">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cinematic%20still%2C%20quiet%20mountain%20ridge%20at%20dusk%2C%20soft%20pink%20and%20blue%20haze%2C%20no%20text&image_size=landscape_16_9" alt="">
+                <div class="badge">第 8 集</div>
+                <div class="bottom"><div class="t">示例剧集 C</div><div class="m">已看 12 分钟 · 剩余 18 分钟</div></div>
+                <div class="prog"></div>
+              </div>
+              <div class="hcard" style="opacity:.9">
+                <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cinematic%20still%2C%20rain%20on%20city%20window%20at%20night%2C%20soft%20teal%20bokeh%2C%20no%20text&image_size=landscape_16_9" alt="">
+                <div class="badge">32%</div>
+                <div class="bottom"><div class="t">示例影片 B</div><div class="m">已看 32 分钟 · 剩余 68 分钟</div></div>
+                <div class="prog" style="width:32%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sect" style="margin-top:14px">
+            <div class="sect-head"><h3>今日推荐</h3><div class="more">换一批 ↻</div></div>
+            <div class="hero">
+              <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cinematic%20aerial%20view%2C%20quiet%20city%20at%20blue%20hour%2C%20soft%20glow%20and%20pastel%20mist%2C%20no%20text&image_size=landscape_16_9" alt="">
+              <div class="dots"><i class="on"></i><i></i><i></i></div>
+              <div class="info">
+                <div class="txt"><div class="t">示例影片 A</div><div class="m">2024 · 示例地区 · 剧情 · 更新至 12 集</div></div>
+                <div class="pill primary" style="height:36px;padding:0 16px;font-size:12.5px">▶ 播放</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sect" style="margin-top:16px">
+            <div class="sect-head"><h3>热门推荐</h3><div class="more">更多 ›</div></div>
+            <div class="grid">
+              <div class="pcard">
+                <div class="cover">
+                  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20cinematic%20poster%20art%2C%20soft%20teal%20and%20lavender%20gradient%2C%20glowing%20mist%20over%20layered%20hills%2C%20minimal%2C%20no%20text&image_size=portrait_4_3" alt="">
+                  <div class="badge">更新至 12 集</div>
+                  <div class="meta"><div class="t">示例剧集 D</div><div class="s">剧情 · 2024</div></div>
+                </div>
+              </div>
+              <div class="pcard">
+                <div class="cover">
+                  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20sci-fi%20poster%2C%20deep%20indigo%20nebula%20with%20soft%20glowing%20orb%2C%20fine%20stars%2C%20minimal%2C%20no%20text&image_size=portrait_4_3" alt="">
+                  <div class="badge">全 24 集</div>
+                  <div class="meta"><div class="t">示例影片 E</div><div class="s">科幻 · 2023</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fade-bottom"></div>
+      </div>
+      <div class="caption">
+        <h4>首页 · 暗色</h4>
+        <p>暗色不是反色：底色 #0B0E16 + 三处低饱和光斑，玻璃用 white 8%~15% 叠加制造层级，文字提亮至 #ECF1FA。</p>
+        <div class="tagline">同一套层级 · 不同明度</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ======================= COMPONENTS ======================= -->
+  <div class="sec-head">
+    <div class="no">03</div>
+    <h2>组件规格</h2>
+    <p class="desc">胶囊按钮 / Chips / Toast / 剧集格 / 源行 / 骨架 / 占位。</p>
+  </div>
+
+  <div class="board" style="grid-template-columns:1fr 1fr">
+    <div>
+      <h3>按钮与选择</h3>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="pill primary">▶ 立即播放</div>
+        <div class="pill glassbtn">加入收藏</div>
+        <div class="pill chip">未选中</div>
+        <div class="pill chip on">已选中</div>
+        <div class="iconbtn" style="width:44px;height:44px;border-radius:999px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 17s-6-3.7-6-8a3.5 3.5 0 016-2 3.5 3.5 0 016 2c0 4.3-6 8-6 8z"/></svg>
+        </div>
+      </div>
+
+      <h3 style="margin-top:30px">剧集格</h3>
+      <div class="eps" style="grid-template-columns:repeat(6,1fr);max-width:330px">
+        <div class="ep seen">1</div><div class="ep seen">2</div><div class="ep on">3</div>
+        <div class="ep">4</div><div class="ep">5</div><div class="ep">6</div>
+      </div>
+      <div class="small" style="margin-top:10px">44dp 高 · 8dp 圆角 · 选中 = 14% 主色填充 + 55% 描边</div>
+
+      <h3 style="margin-top:30px">Toast</h3>
+      <div style="max-width:300px">
+        <div class="toast"><span class="ok">✓</span> 已导入 12 个源，可用 10 个</div>
+      </div>
+      <div class="small" style="margin-top:8px">L3 · 距底 72dp · 2.0s · 同屏仅 1 个</div>
+    </div>
+
+    <div>
+      <h3>玻璃卡片结构（剖面）</h3>
+      <div class="l1" style="border-radius:16px;padding:16px">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:56px;height:78px;border-radius:12px;overflow:hidden;flex:0 0 auto">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=abstract%20poster%2C%20soft%20lavender%20and%20mint%2C%20minimal%2C%20no%20text&image_size=portrait_4_3" style="width:100%;height:100%;object-fit:cover" alt="">
+          </div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;color:var(--text)">示例影片 A</div>
+            <div style="font-size:10.5px;color:var(--text-3);margin-top:4px">2:3 封面 · 13sp 标题 · 11sp 元信息</div>
+            <div style="height:1px;background:var(--hair);margin:10px 0"></div>
+            <div style="font-size:10px;color:var(--text-3)">外描边 1dp · 内高光 1dp · 柔影 md</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:26px">柔光占位（加载失败）</h3>
+      <div style="display:flex;gap:12px">
+        <div style="width:96px;height:144px;border-radius:12px;border:1px solid rgba(255,255,255,.5);
+          background:linear-gradient(135deg,rgba(175,160,232,.10),rgba(108,138,240,.08));
+          display:flex;align-items:center;justify-content:center;color:rgba(135,145,165,.6)">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-5 4 4 3-2 4 3"/></svg>
+        </div>
+        <div style="flex:1;font-size:10.5px;line-height:1.8;color:#7C879C">
+          不使用灰块与破图图标。<br>
+          底色 = violet 8% + brand 6% 的 135° 渐变，<br>
+          图标 = 20% 透明度线性图标，<br>
+          圆角继承卡片自身。
+        </div>
+      </div>
+
+      <h3 style="margin-top:26px">动效时长</h3>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:11px;color:#6B7690">
+        <div style="display:flex;justify-content:space-between"><span>按压反馈</span><span style="color:#1B2233;font-variant-numeric:tabular-nums">100–120ms</span></div>
+        <div style="display:flex;justify-content:space-between"><span>控件显隐 / Toast</span><span style="color:#1B2233;font-variant-numeric:tabular-nums">150–200ms</span></div>
+        <div style="display:flex;justify-content:space-between"><span>面板 / 悬浮条 / 玻璃浮现</span><span style="color:#1B2233;font-variant-numeric:tabular-nums">240ms</span></div>
+        <div style="display:flex;justify-content:space-between"><span>页面转场 / 共享元素</span><span style="color:#1B2233;font-variant-numeric:tabular-nums">320ms</span></div>
+        <div style="display:flex;justify-content:space-between"><span>退出（比进入快 20%）</span><span style="color:#1B2233;font-variant-numeric:tabular-nums">220ms</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="note"><b>可读性底线</b><p>图上文字必须叠底部 scrim（0 → 0.78）；正文 ≥ 4.5:1，次要 ≥ 3.5:1 且 ≥ 12sp。亮色海报与暗色海报一视同仁。</p></div>
+    <div class="note"><b>性能降级</b><p>同屏实时模糊 ≤ 3 块；列表滚动降级为预渲染模糊位图；低端机关闭 blur，仅保留填充 + 描边 + 上缘高光。</p></div>
+    <div class="note"><b>层级递进</b><p>圆角随层级上升：卡 16 → 浮层 20 → 面板 28。模糊与填充同向递增，L4 因加 scrim 填充回落。</p></div>
+  </div>
+
+  <div class="footer">
+    <span>柔光玻璃 · 视觉稿 v1.0 · 375 × 812 dp</span>
+    <span>配套文档：01_设计规范_柔光玻璃.md · 02_源格式规范_JSON_JS_PY.md</span>
+  </div>
+
+</div>
+</body>
+</html>

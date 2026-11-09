@@ -1,0 +1,19 @@
+{
+  "name": "内置示例源",
+  "version": "1.0.0",
+  "author": "GlassBox",
+  "sites": [
+    {
+      "key": "glassDemo",
+      "name": "示例放映厅",
+      "type": "glass",
+      "api": "glass://demo",
+      "searchable": true,
+      "quickSearch": true,
+      "filter": false
+    }
+  ],
+  "parses": [],
+  "flags": ["youku", "qq", "iqiyi"],
+  "lives": []
+}

@@ -1,0 +1,14 @@
+<resources>
+
+    <style name="Theme.GlassBox" parent="android:Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <!-- 透明窗口背景：SurfaceView 位于窗口之下，窗口不透明会把视频画面整片遮住（有声音无画面）。 -->
+        <item name="android:windowBackground">#00000000</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+
+</resources>
