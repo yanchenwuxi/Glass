@@ -146,6 +146,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     val sources: StateFlow<List<SourceEntity>> = store.sources.asStateFlow()
     val settings: StateFlow<AppSettings> = store.settings.asStateFlow()
+    fun setting(): AppSettings = settings.value
     val history: StateFlow<List<WatchRecord>> = store.history.asStateFlow()
     val favorites: StateFlow<List<MediaItem>> = store.favorites.asStateFlow()
     val searchHistory: StateFlow<List<String>> = store.searchHistory.asStateFlow()
@@ -1554,7 +1555,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             val settingsEl = root.get("settings")
             if (settingsEl != null && settingsEl.isJsonObject) {
                 val s = StoreJson().gson.fromJson(settingsEl, AppSettings::class.java)
-                store.saveSettings(s)
+                kotlinx.coroutines.runBlocking { store.saveSettings(s) }
                 com.glassbox.app.core.Net.applyHttpProxy(s.proxyEnabled, s.proxyHost, s.proxyPort)
             }
             "备份已恢复（源列表请在资源页确认）"

@@ -54,7 +54,7 @@ import com.glassbox.app.data.SourceOrigin
 import com.glassbox.app.ui.MainViewModel
 import com.glassbox.app.ui.SourceBatchAction
 import com.glassbox.app.ui.components.*
-import com.glassbox.app.core.showToast
+import com.glassbox.app.ui.components.showToast
 import com.glassbox.app.ui.theme.GlassTheme
 
 /**
@@ -738,13 +738,13 @@ private fun ImportSheet(
                     }
                     ImportRow("私有解析接口", "编辑 JSON 解析链，播放失败时回退", palette.iconBlueAlt) {
                         mode = "parse"
-                        textInput = vm.setting().parseListJson
+                        textInput = vm.settings.value.parseListJson
                     }
                 }
                 ImportGroup("直播") {
                     ImportRow("直播源 M3U / TXT", "填写订阅地址，写入设置并打开直播", palette.iconOrange) {
                         mode = "live"
-                        urlInput = vm.setting().liveSourceUrl
+                        urlInput = vm.settings.value.liveSourceUrl
                     }
                     ImportRow("局域网推送 / 远程控制", "开启后可用局域网控制播放", palette.iconGreen) {
                         vm.updateSettings { it.copy(remoteControlEnabled = true) }
