@@ -137,15 +137,48 @@ object SourceParser {
             return scheme + value
         }
         if (Regex("^[A-Za-z][A-Za-z0-9+.-]*://").containsMatchIn(value)) return value
+        // 绝对本地路径：禁止再和 base 拼接，否则会出现
+        // /storage/emulated/0//storage/emulated/0/xxx.py
+        if (value.startsWith("/") || value.startsWith("file://")) {
+            return value.removePrefix("file://")
+        }
         if (base.isBlank()) return value
         // 本地配置（SAF / 绝对路径）：按配置文件所在目录解析
         if (!base.startsWith("http")) {
-            val dir = base.substringBeforeLast('/', "")
-            return if (dir.isBlank()) value else "$dir/$value"
+            val basePath = base.removePrefix("file://")
+            // base 若本身已是目录（无扩展名）直接作 parent；否则取父目录
+            val dir = when {
+                basePath.endsWith("/") -> basePath.trimEnd('/')
+                basePath.contains('.') && basePath.substringAfterLast('/').contains('.') ->
+                    basePath.substringBeforeLast('/', "")
+                else -> basePath.trimEnd('/')
+            }
+            if (dir.isBlank()) return value
+            val joined = "$dir/${value.removePrefix("./")}"
+            return collapseDuplicateStorage(joined)
         }
         return runCatching {
             java.net.URI(base).resolve(value.replace(" ", "%20")).toString()
         }.getOrElse { value }
+    }
+
+    /** 折叠误拼的 /storage/emulated/0/.../storage/emulated/0/... */
+    fun collapseDuplicateStorage(path: String): String {
+        var p = path.replace("//", "/")
+        val marker = "/storage/emulated/0/"
+        val i = p.indexOf(marker)
+        if (i >= 0) {
+            val rest = p.substring(i + marker.length)
+            if (rest.contains("storage/emulated/0/")) {
+                val j = rest.lastIndexOf("storage/emulated/0/")
+                p = marker + rest.substring(j + "storage/emulated/0/".length)
+            } else if (p.startsWith(marker) && rest.startsWith("/storage/")) {
+                p = rest
+            }
+        }
+        // 再压一次双斜杠
+        while ("//" in p) p = p.replace("//", "/")
+        return p
     }
 
     private fun resolveType(o: JsonObject, api: String): TypeResolution {

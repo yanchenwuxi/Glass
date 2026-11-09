@@ -60,7 +60,13 @@ object ScriptResolver {
     fun logicalPath(api: String, base: String?): String {
         val a = api.trim()
         if (a.startsWith("http")) return a
-        if (a.startsWith("/")) return a
+        if (a.startsWith("/") || a.startsWith("file://")) {
+            return SourceParser.collapseDuplicateStorage(a.removePrefix("file://"))
+        }
+        // 无前导 / 但已是绝对风格：storage/emulated/0/...
+        if (a.startsWith("storage/") || a.startsWith("sdcard/")) {
+            return SourceParser.collapseDuplicateStorage("/$a")
+        }
         val b = base?.trim().orEmpty()
         val root = when {
             b.startsWith("tree:") -> {
@@ -69,9 +75,12 @@ object ScriptResolver {
                 listOfNotNull(dir, rel.ifBlank { null }).joinToString("/")
             }
             b.startsWith("file://") -> Uri.parse(b).path
+            b.startsWith("/") -> b.substringBeforeLast('/').ifBlank { b }
             else -> null
         } ?: return a
-        return "$root/${a.removePrefix("./")}"
+        return SourceParser.collapseDuplicateStorage(
+            "$root/${a.removePrefix("./")}"
+        )
     }
 
     private fun treeDocumentPath(treeUri: String): String? = runCatching {
@@ -92,7 +101,12 @@ object ScriptResolver {
     private fun resolve(api: String, base: String?): String? {
         if (api.startsWith("//")) return "https:$api"
         if (api.startsWith("http", true)) return api
-        if (api.startsWith("/")) return api
+        if (api.startsWith("/") || api.startsWith("file://")) {
+            return SourceParser.collapseDuplicateStorage(api.removePrefix("file://"))
+        }
+        if (api.startsWith("storage/") || api.startsWith("sdcard/")) {
+            return SourceParser.collapseDuplicateStorage("/$api")
+        }
         val b = base?.trim().orEmpty()
         if (b.isBlank()) return null
         if (b.startsWith("http", true)) {
@@ -116,7 +130,11 @@ object ScriptResolver {
             b.startsWith("file://") -> Uri.parse(b).path?.let { p -> File(p).parentFile }
             else -> File(b).let { if (it.isDirectory) it else it.parentFile }
         }
-        return dir?.let { d -> File(d, api.removePrefix("./")).absolutePath }
+        return dir?.let { d ->
+            SourceParser.collapseDuplicateStorage(
+                File(d, api.removePrefix("./")).absolutePath
+            )
+        }
     }
 
     /** 单文件授权：documentId 形如 `primary:目录/文件.json`，据此拼出同级文件路径。 */
@@ -126,7 +144,7 @@ object ScriptResolver {
         val parent = path.substringBeforeLast('/', "")
         val rel = api.removePrefix("./")
         val full = if (parent.isBlank()) rel else "$parent/$rel"
-        "/storage/emulated/0/$full"
+        SourceParser.collapseDuplicateStorage("/storage/emulated/0/$full")
     }.getOrNull()
 
     private fun readDocument(uri: String): String? = runCatching {

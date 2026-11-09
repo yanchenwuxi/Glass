@@ -185,9 +185,11 @@ class JarSpider(private val site: SiteDef) : SiteSpider {
                 )
         }
         val libDir = runCatching { extractNative(jar) }.getOrNull()
-        val optDir = File(context.filesDir, "jar_opt").apply { mkdirs() }
+        // Android 8+ 禁止从「可写」路径加载 dex：把 jar 拷到 codeCache 并标记只读
+        val safeJar = prepareReadonlyJar(context, jar)
+        val optDir = File(context.codeCacheDir, "jar_opt").apply { mkdirs() }
         val loader = DexClassLoader(
-            jar.absolutePath,
+            safeJar.absolutePath,
             optDir.absolutePath,
             libDir?.absolutePath,
             context.classLoader
@@ -235,7 +237,10 @@ class JarSpider(private val site: SiteDef) : SiteSpider {
     private suspend fun downloadJar(context: Context, url: String): File? = withContext(Dispatchers.IO) {
         val dir = File(context.filesDir, "jars").apply { mkdirs() }
         val file = File(dir, md5(url) + ".jar")
-        if (file.isFile && file.length() > 0) return@withContext file
+        if (file.isFile && file.length() > 0) {
+            lockJar(file)
+            return@withContext file
+        }
         runCatching {
             val request = Request.Builder().url(Net.normalizeUrl(url)).header("User-Agent", Net.UA).build()
             Net.client.newCall(request).execute().use { resp ->
@@ -243,11 +248,40 @@ class JarSpider(private val site: SiteDef) : SiteSpider {
                 resp.body?.bytes()?.let { bytes ->
                     val tmp = File(dir, file.name + ".part")
                     tmp.writeBytes(bytes)
+                    if (file.exists()) file.delete()
                     tmp.renameTo(file)
                 }
             }
+            lockJar(file)
             file
         }.onFailure { Log.i("GlassJar", "JAR 下载失败 $url：${it.message}") }.getOrNull()
+    }
+
+    /**
+     * 将 jar 复制到 codeCache 并 setReadOnly，规避
+     * "Writable dex file ... is not allowed"。
+     */
+    private fun prepareReadonlyJar(context: Context, src: File): File {
+        val dir = File(context.codeCacheDir, "jars").apply { mkdirs() }
+        val dst = File(dir, src.name)
+        if (!dst.isFile || dst.length() != src.length() || dst.lastModified() < src.lastModified()) {
+            // 目标可能是只读，先允许写再覆盖
+            if (dst.exists()) {
+                dst.setWritable(true)
+                dst.delete()
+            }
+            src.copyTo(dst, overwrite = true)
+        }
+        lockJar(dst)
+        return dst
+    }
+
+    private fun lockJar(file: File) {
+        runCatching {
+            file.setReadable(true, false)
+            file.setWritable(false, false)
+            file.setReadOnly()
+        }
     }
 
     /** jar 里 assets 下的 .so 需要解出来放到 DexClassLoader 的 native 目录。 */
