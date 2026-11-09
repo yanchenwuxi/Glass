@@ -157,14 +157,14 @@ fun SettingsScreen(
                         vm.updateSettings { it.copy(preferredGroup = (settings.preferredGroup + 1) % 3) }
                     }
                 }
-                SettingsRow(Icons.Outlined.Block, palette.iconOrange, "去广告", "线路过滤 + M3U8切片清洗热切换") {
+                SettingsRow(Icons.Outlined.DeleteSweep, palette.iconOrange, "去广告", "线路过滤 + M3U8切片清洗热切换") {
                     Switch(
                         checked = settings.adFilterEnabled,
                         onCheckedChange = { on -> vm.updateSettings { it.copy(adFilterEnabled = on) } },
                         colors = switchColors()
                     )
                 }
-                SettingsRow(Icons.Outlined.Timer, palette.iconBlue, "片头跳过", "起播自动跳过前 N 秒") {
+                SettingsRow(Icons.Outlined.Speed, palette.iconBlue, "片头跳过", "起播自动跳过前 N 秒") {
                     ValueText(if (settings.skipIntroSec <= 0) "关" else "${settings.skipIntroSec}s") {
                         val options = listOf(0, 30, 60, 90, 120)
                         val idx = options.indexOf(settings.skipIntroSec).let { if (it < 0) 0 else it }
