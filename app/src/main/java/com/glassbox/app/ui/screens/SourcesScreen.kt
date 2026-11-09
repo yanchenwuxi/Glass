@@ -261,7 +261,7 @@ fun SourcesScreen(
         if (filtered.isEmpty()) {
             EmptyState(
                 title = "还没有导入源",
-                message = "支持 TVBox JSON / JS / PY、Kazumi 规则、本地文件与文件夹。点右上角「+」开始导入。",
+                message = "支持 TVBox JSON / JS / PY、海阔视界分享口令、本地文件与文件夹。点右上角「+」开始导入。",
                 icon = Icons.Outlined.Dns,
                 action = { PrimaryCapsule(text = "导入源", minHeight = 44.dp, onClick = { showImport = true }) }
             )
@@ -712,16 +712,6 @@ private fun ImportSheet(
             SheetHeader("导入源", "多源不合并 · 按平台分组")
             Spacer(Modifier.height(10.dp))
             if (mode == null) {
-                ImportGroup("媒体服务器") {
-                    ImportRow("Emby / Jellyfin / 飞牛 NAS", "粘贴服务器 API 地址作为源导入", palette.iconViolet) {
-                        mode = "url"
-                        nameInput = "媒体服务器"
-                        urlInput = ""
-                    }
-                    ImportRow("WebDAV / 网络路径", "通过本地文件或目录挂载后导入", palette.iconOrange) {
-                        onPickFolder()
-                    }
-                }
                 ImportGroup("影视源") {
                     ImportRow("TVBox 影视源", "在线链接（JSON 配置）", palette.iconBlue) {
                         mode = "url"; nameInput = ""; urlInput = ""
@@ -729,11 +719,8 @@ private fun ImportSheet(
                     ImportRow("粘贴配置文本", "JSON / JS / PY 脚本", palette.iconPurple) {
                         mode = "text"; nameInput = ""; textInput = ""
                     }
-                    ImportRow("Kazumi 规则仓库", "在线规则链接", palette.iconGreen) {
-                        mode = "kazumi"; nameInput = ""; urlInput = ""
-                    }
-                    ImportRow("海阔视界分享口令", "粘贴剪贴板口令", palette.iconPink) {
-                        mode = "text"
+                    ImportRow("海阔视界分享口令", "支持 ￥标记￥链接 / rule:// / Base64 / pasteme", palette.iconPink) {
+                        mode = "hiker"
                         textInput = clipboard.getText()?.text.orEmpty()
                     }
                     ImportRow("私有解析接口", "编辑 JSON 解析链，播放失败时回退", palette.iconBlueAlt) {
@@ -762,7 +749,7 @@ private fun ImportSheet(
                     }
                 }
             } else {
-                val isUrl = mode == "url" || mode == "kazumi" || mode == "live"
+                val isUrl = mode == "url" || mode == "live"
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -772,9 +759,9 @@ private fun ImportSheet(
                     Text(
                         when (mode) {
                             "url" -> "TVBox 影视源"
-                            "kazumi" -> "Kazumi 规则仓库"
                             "live" -> "直播源 M3U / TXT"
                             "parse" -> "解析接口 JSON"
+                            "hiker" -> "海阔视界分享口令"
                             else -> "粘贴配置文本"
                         },
                         color = palette.textPrimary,
@@ -795,6 +782,24 @@ private fun ImportSheet(
                 Spacer(Modifier.height(10.dp))
                 Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     when (mode) {
+                        "hiker" -> {
+                            MultiLineField(textInput) { textInput = it }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                ActionPill("从剪贴板粘贴", palette.iconBlue) {
+                                    textInput = clipboard.getText()?.text.orEmpty()
+                                }
+                                ActionPill("解析口令", palette.iconPink) {
+                                    if (textInput.isBlank()) showToast(context, "请先粘贴海阔口令")
+                                    else vm.previewFromHikerShare(textInput)
+                                }
+                            }
+                            Text(
+                                "支持：￥home_rule_url￥链接、rule://Base64、整段Base64、pasteme 链接、口令内直链",
+                                color = palette.textTertiary,
+                                fontSize = 11.sp,
+                                lineHeight = 16.sp
+                            )
+                        }
                         "live" -> {
                             FormField("M3U / TXT 地址", urlInput) { urlInput = it }
                             PrimaryCapsule(

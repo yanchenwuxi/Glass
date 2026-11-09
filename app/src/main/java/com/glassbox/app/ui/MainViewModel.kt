@@ -1076,6 +1076,58 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /** 海阔视界分享口令：解码 → 拉链/取正文 → 走统一预览探测。 */
+    fun previewFromHikerShare(raw: String) {
+        viewModelScope.launch {
+            _import.value = _import.value.copy(loading = true, error = null, progress = "解析海阔口令…")
+            val resolved = runCatching {
+                com.glassbox.app.engine.HikerShare.resolve(raw)
+            }.getOrElse {
+                _import.value = _import.value.copy(loading = false, error = "口令解析失败：${it.message}")
+                return@launch
+            }
+            when {
+                !resolved.text.isNullOrBlank() -> {
+                    val preview = buildPreview(
+                        resolved.text!!,
+                        resolved.title,
+                        SourceOrigin.CLIPBOARD,
+                        resolved.url
+                    )
+                    _import.value = ImportUiState(
+                        loading = false,
+                        preview = preview,
+                        error = if (!preview.ok) preview.message else null,
+                        progress = resolved.note
+                    )
+                }
+                !resolved.url.isNullOrBlank() -> {
+                    // 仅有 URL 且下载失败时，仍尝试按 URL 导入
+                    val text = runCatching { Net.get(resolved.url!!) }.getOrElse {
+                        _import.value = _import.value.copy(
+                            loading = false,
+                            error = "口令链接无法访问：${it.message}（${resolved.note}）"
+                        )
+                        return@launch
+                    }
+                    val preview = buildPreview(text, resolved.title, SourceOrigin.URL, resolved.url)
+                    _import.value = ImportUiState(
+                        loading = false,
+                        preview = preview,
+                        error = if (!preview.ok) preview.message else null,
+                        progress = resolved.note
+                    )
+                }
+                else -> {
+                    _import.value = _import.value.copy(
+                        loading = false,
+                        error = "无法从口令提取规则或链接（${resolved.note}）"
+                    )
+                }
+            }
+        }
+    }
+
     fun previewFromUrl(url: String) {
         viewModelScope.launch {
             _import.value = ImportUiState(loading = true)
