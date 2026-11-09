@@ -110,12 +110,20 @@ object HikerShare {
             return DecodeResult(DecodeResult.Kind.URL, url = prefer, title = guessTitle(input), note = "多链接取优先")
         }
 
-        // 5) 云剪切板短码 → 拼 pasteme（社区常用形态）
+        // 5) 云剪切板：云渠道/密码/标识 → pasteme 路径 password/key
         cloudCode.matcher(input).let { m ->
             if (m.find()) {
-                val code = m.group(2)!!
-                val url = "https://pasteme.tyrantg.com/api/$code"
-                return DecodeResult(DecodeResult.Kind.URL, url = url, note = "云口令→pasteme")
+                val channel = m.group(1)!!
+                val password = m.group(2)!!
+                val key = m.group(3)!!
+                // 社区常用：https://pasteme.tyrantg.com/{password}/{key}
+                val url = "https://pasteme.tyrantg.com/$password/$key"
+                return DecodeResult(
+                    DecodeResult.Kind.URL,
+                    url = url,
+                    title = "云$channel",
+                    note = "云口令 password=$password key=$key"
+                )
             }
         }
 
@@ -145,9 +153,39 @@ object HikerShare {
         val local = parseLocal(raw)
         if (local.kind == DecodeResult.Kind.TEXT) return local
         val url = local.url ?: return local
-        val body = runCatching { Net.get(url, retries = 1) }.getOrElse {
-            Log.w("HikerShare", "fetch fail $url: ${it.message}")
-            return DecodeResult(DecodeResult.Kind.URL, url = url, title = local.title, note = "拉取失败：${it.message}")
+        val candidates = linkedSetOf(url)
+        // 云口令补充候选
+        if (url.contains("pasteme.tyrantg.com")) {
+            val segs = url.trimEnd('/').substringAfter("pasteme.tyrantg.com/").split('/')
+            if (segs.size >= 2) {
+                val pass = segs[0]; val key = segs[1]
+                candidates += "https://pasteme.tyrantg.com/$pass/$key"
+                candidates += "https://pasteme.tyrantg.com/$key"
+                candidates += "https://pasteme.tyrantg.com/api/$key"
+                candidates += "https://pasteme.tyrantg.com/api/$key?password=$pass"
+            }
+        }
+        var body: String? = null
+        var used = url
+        for (u in candidates) {
+            val text = runCatching { Net.get(u, retries = 0) }.getOrNull()
+            if (!text.isNullOrBlank() && !text.contains("隐藏内容") && !text.contains(""code":500")) {
+                body = text
+                used = u
+                break
+            }
+            if (body == null && !text.isNullOrBlank()) body = text // keep last for error msg
+        }
+        if (body == null) {
+            return DecodeResult(DecodeResult.Kind.URL, url = url, title = local.title, note = "拉取失败：无响应")
+        }
+        if (body.contains("隐藏内容") || body.contains("password") && body.length < 80) {
+            return DecodeResult(
+                DecodeResult.Kind.TEXT,
+                text = "",
+                title = local.title,
+                note = "云剪切板内容受密码保护或已失效（页面返回「隐藏内容」）。请在海阔中打开口令复制明文规则后再导入。"
+            )
         }
         val unwrapped = unwrapPasteme(body) ?: body.trim()
         // 下载结果仍可能是口令或再套一层

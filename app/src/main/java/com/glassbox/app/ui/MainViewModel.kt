@@ -1087,6 +1087,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
             when {
+                resolved.text != null && resolved.text.isBlank() && resolved.note.isNotBlank() -> {
+                    _import.value = _import.value.copy(loading = false, error = resolved.note)
+                }
                 !resolved.text.isNullOrBlank() -> {
                     val preview = buildPreview(
                         resolved.text!!,
