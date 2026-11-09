@@ -15,6 +15,9 @@ import com.glassbox.app.core.displayName
 import com.glassbox.app.data.*
 import com.glassbox.app.engine.*
 import com.glassbox.app.engine.live.LiveChannelGroup
+import com.glassbox.app.engine.live.LiveEpgDay
+import com.glassbox.app.engine.live.LiveEpgProgram
+import com.glassbox.app.engine.dlna.DlnaDevice
 import com.glassbox.app.engine.parse.ParseDef
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -172,6 +175,21 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _remoteCommand = MutableStateFlow<RemoteCommand?>(null)
     val remoteCommand: StateFlow<RemoteCommand?> = _remoteCommand.asStateFlow()
+
+    private val _dlnaDevices = MutableStateFlow<List<DlnaDevice>>(emptyList())
+    val dlnaDevices: StateFlow<List<DlnaDevice>> = _dlnaDevices.asStateFlow()
+    private val _dlnaBusy = MutableStateFlow(false)
+    val dlnaBusy: StateFlow<Boolean> = _dlnaBusy.asStateFlow()
+    private val _dlnaMessage = MutableStateFlow<String?>(null)
+    val dlnaMessage: StateFlow<String?> = _dlnaMessage.asStateFlow()
+
+    private val _epgDays = MutableStateFlow<List<LiveEpgDay>>(emptyList())
+    val epgDays: StateFlow<List<LiveEpgDay>> = _epgDays.asStateFlow()
+    private val _epgLoading = MutableStateFlow(false)
+    val epgLoading: StateFlow<Boolean> = _epgLoading.asStateFlow()
+    private val _epgNowNext = MutableStateFlow<Pair<LiveEpgProgram?, LiveEpgProgram?>>(null to null)
+    val epgNowNext: StateFlow<Pair<LiveEpgProgram?, LiveEpgProgram?>> = _epgNowNext.asStateFlow()
+
 
     /** 播放页回写，供 /status 查询 */
     @Volatile
@@ -1573,6 +1591,76 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         playbackStatusJson =
             "{\"ok\":true,\"playing\":$playing,\"positionMs\":$positionMs,\"durationMs\":$durationMs," +
             "\"title\":\"$safeTitle\",\"episode\":\"$safeEp\",\"page\":\"player\"}"
+    }
+
+
+    fun discoverDlna() {
+        viewModelScope.launch {
+            _dlnaBusy.value = true
+            _dlnaMessage.value = "正在搜索 DLNA 设备…"
+            try {
+                val list = glassApp.dlna.discover()
+                _dlnaDevices.value = list
+                _dlnaMessage.value = if (list.isEmpty()) "未发现设备（需同一 Wi‑Fi，电视已开投屏）" else "发现 ${list.size} 台设备"
+            } catch (t: Throwable) {
+                _dlnaMessage.value = t.message ?: "搜索失败"
+            } finally {
+                _dlnaBusy.value = false
+            }
+        }
+    }
+
+    fun castToDlna(device: DlnaDevice, url: String, title: String) {
+        viewModelScope.launch {
+            _dlnaBusy.value = true
+            _dlnaMessage.value = "正在投屏到 ${device.name}…"
+            try {
+                val ok = glassApp.dlna.cast(device, url, title)
+                _dlnaMessage.value = if (ok) "已投屏：${device.name}" else "投屏失败（设备拒绝或地址不可达）"
+            } catch (t: Throwable) {
+                _dlnaMessage.value = t.message ?: "投屏失败"
+            } finally {
+                _dlnaBusy.value = false
+            }
+        }
+    }
+
+    fun dlnaPause(device: DlnaDevice) {
+        viewModelScope.launch { runCatching { glassApp.dlna.pause(device) } }
+    }
+
+    fun dlnaStop(device: DlnaDevice) {
+        viewModelScope.launch { runCatching { glassApp.dlna.stop(device) } }
+    }
+
+    fun loadEpg(url: String = store.settings.value.epgUrl, force: Boolean = false) {
+        viewModelScope.launch {
+            if (url.isBlank()) {
+                _epgDays.value = emptyList()
+                return@launch
+            }
+            _epgLoading.value = true
+            try {
+                val ok = glassApp.epg.load(url, force)
+                if (!ok) {
+                    _epgDays.value = emptyList()
+                }
+                updateSettings { it.copy(epgUrl = url) }
+            } finally {
+                _epgLoading.value = false
+            }
+        }
+    }
+
+    fun refreshEpgForChannel(epgId: String?, channelName: String?) {
+        viewModelScope.launch {
+            val url = store.settings.value.epgUrl
+            if (url.isNotBlank()) {
+                runCatching { glassApp.epg.load(url, force = false) }
+            }
+            _epgDays.value = glassApp.epg.daysForChannel(epgId, channelName)
+            _epgNowNext.value = glassApp.epg.nowNext(epgId, channelName)
+        }
     }
 
     // endregion

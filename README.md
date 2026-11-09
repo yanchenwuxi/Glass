@@ -77,7 +77,9 @@ app/src/main/java/com/glassbox/app/
 ### P2（进行中）
 
 - [x] 远程控制播放响应：play/pause/toggle/next/prev/seek/stop + GET /status
-- [ ] DLNA、本地文件、迅雷 P2P、完整弹幕
+- [x] DLNA 投屏（SSDP 发现 + AVTransport）
+- [x] 直播 XMLTV EPG
+- [ ] 本地文件、迅雷 P2P、完整弹幕
 
 ---
 

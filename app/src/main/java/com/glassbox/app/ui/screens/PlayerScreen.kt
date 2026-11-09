@@ -82,6 +82,7 @@ import com.glassbox.app.engine.PlaybackBridge
 import com.glassbox.app.engine.PlaybackKernel
 import com.glassbox.app.engine.PlaybackSession
 import com.glassbox.app.engine.PlaybackState
+import com.glassbox.app.engine.dlna.DlnaDevice
 import com.glassbox.app.engine.VideoAspect
 import com.glassbox.app.ui.MainViewModel
 import com.glassbox.app.ui.PlayRequest
@@ -104,6 +105,9 @@ fun PlayerScreen(vm: MainViewModel, onBack: () -> Unit) {
     val request by vm.pendingPlay.collectAsState()
     val settings by vm.settings.collectAsState()
     val remoteCmd by vm.remoteCommand.collectAsState()
+    val dlnaDevices by vm.dlnaDevices.collectAsState()
+    val dlnaBusy by vm.dlnaBusy.collectAsState()
+    val dlnaMessage by vm.dlnaMessage.collectAsState()
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
     val view = LocalView.current
@@ -128,6 +132,9 @@ fun PlayerScreen(vm: MainViewModel, onBack: () -> Unit) {
     var showSpeed by remember { mutableStateOf(false) }
     var showTracks by remember { mutableStateOf(false) }
     var showPicture by remember { mutableStateOf(false) }
+    var showCast by remember { mutableStateOf(false) }
+    var currentPlayUrl by remember { mutableStateOf("") }
+    var currentPlayTitle by remember { mutableStateOf("") }
     var showLines by remember { mutableStateOf(false) }
     var showInfo by remember { mutableStateOf(false) }
     var hint by remember { mutableStateOf<String?>(null) }
@@ -216,6 +223,28 @@ fun PlayerScreen(vm: MainViewModel, onBack: () -> Unit) {
             episode = episode?.name ?: ""
         )
     }
+
+
+    if (showCast) {
+        DlnaCastSheet(
+            devices = dlnaDevices,
+            busy = dlnaBusy,
+            message = dlnaMessage,
+            onDiscover = { vm.discoverDlna() },
+            onCast = { device ->
+                val u = currentPlayUrl
+                if (u.isBlank()) {
+                    hint = "当前没有可投屏地址"
+                } else {
+                    vm.castToDlna(device, u, currentPlayTitle.ifBlank { detail?.item?.title ?: "GlassBox" })
+                }
+            },
+            onPause = { vm.dlnaPause(it) },
+            onStop = { vm.dlnaStop(it) },
+            onDismiss = { showCast = false }
+        )
+    }
+
 
     LaunchedEffect(kernel) {
         snapshot = PlaybackState()
@@ -324,6 +353,8 @@ fun PlayerScreen(vm: MainViewModel, onBack: () -> Unit) {
             return@LaunchedEffect
         }
         addressFailure = false
+        currentPlayUrl = prep.url
+        currentPlayTitle = d.item.title + (episode?.name?.let { " · $it" } ?: "")
         engine.play(prep.url, start, prep.headers, forceHls = prep.isHls)
         playStarted = true
         trackRefresh++
@@ -1249,7 +1280,7 @@ private fun FullscreenOverlay(
                         TopTextButton("比例") { onCycleAspect() }
                         TopTextButton("画面", onClick = onPicture)
                         TopTextButton("信息", onClick = onInfo)
-                        TopTextButton("投屏") { onHint("投屏未接入：需打包 media3-cast + androidx.mediarouter，且当前内核不是 Media3 Player") }
+                        TopTextButton("投屏") { showCast = true }
                         TopTextButton("选集", onClick = onEpisodes)
                     }
                 }
@@ -2199,4 +2230,111 @@ private fun Context.findActivity(): Activity? {
         ctx = ctx.baseContext
     }
     return null
+}
+
+@Composable
+private fun DlnaCastSheet(
+    devices: List<DlnaDevice>,
+    busy: Boolean,
+    message: String?,
+    onDiscover: () -> Unit,
+    onCast: (DlnaDevice) -> Unit,
+    onPause: (DlnaDevice) -> Unit,
+    onStop: (DlnaDevice) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val palette = GlassTheme.colors
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.45f))
+            .clickable { onDismiss() }
+    ) {
+        Column(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                .background(palette.bgMid)
+                .clickable(enabled = false) {}
+                .padding(16.dp)
+                .navigationBarsPadding()
+        ) {
+            Text("DLNA 投屏", color = palette.textPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(8.dp))
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(palette.accent)
+                    .clickable(enabled = !busy, onClick = onDiscover)
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(if (busy) "搜索中…" else "搜索设备", color = androidx.compose.ui.graphics.Color.White, fontWeight = FontWeight.SemiBold)
+            }
+            if (!message.isNullOrBlank()) {
+                Spacer(Modifier.height(8.dp))
+                Text(message ?: "", color = palette.textSecondary, fontSize = 13.sp)
+            }
+            Spacer(Modifier.height(12.dp))
+            if (devices.isEmpty()) {
+                Text("同一 Wi‑Fi 下打开电视/盒子投屏后点击搜索", color = palette.textTertiary, fontSize = 13.sp)
+            } else {
+                devices.forEach { device ->
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text(device.name, color = palette.textPrimary, fontWeight = FontWeight.Medium)
+                        if (device.manufacturer.isNotBlank() || device.model.isNotBlank()) {
+                            Text(
+                                listOf(device.manufacturer, device.model).filter { it.isNotBlank() }.joinToString(" · "),
+                                color = palette.textTertiary,
+                                fontSize = 11.sp
+                            )
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                "投屏",
+                                color = palette.accent,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { onCast(device) }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                            Text(
+                                "暂停",
+                                color = palette.textSecondary,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { onPause(device) }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                            Text(
+                                "停止",
+                                color = palette.textSecondary,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable { onStop(device) }
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "关闭",
+                color = palette.textSecondary,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .clickable { onDismiss() }
+                    .padding(8.dp)
+            )
+        }
+    }
 }

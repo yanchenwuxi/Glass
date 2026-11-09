@@ -12,6 +12,8 @@ import com.glassbox.app.engine.live.M3uLiveSourceParser
 import com.glassbox.app.engine.parse.JsonParseExecutor
 import com.glassbox.app.engine.parse.ParseExecutor
 import com.glassbox.app.server.RemoteControlServer
+import com.glassbox.app.engine.dlna.DlnaCastManager
+import com.glassbox.app.engine.live.XmltvEpgParser
 
 /**
  * GlassBox-Unified Application。
@@ -29,6 +31,10 @@ class GlassApp : Application() {
         private set
     lateinit var parseExecutor: ParseExecutor
         private set
+    lateinit var dlna: DlnaCastManager
+        private set
+    lateinit var epg: XmltvEpgParser
+        private set
 
     @Volatile
     var remoteServer: RemoteControlServer? = null
@@ -42,6 +48,8 @@ class GlassApp : Application() {
         library = SqliteLibraryRepository(this)
         liveParser = M3uLiveSourceParser()
         parseExecutor = JsonParseExecutor()
+        dlna = DlnaCastManager(this)
+        epg = XmltvEpgParser()
     }
 
     fun startRemoteControl(

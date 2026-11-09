@@ -212,6 +212,8 @@ data class AppSettings(
     val remoteControlPort: Int = 9978,
     /** 最近使用的直播源 URL */
     val liveSourceUrl: String = "",
+    /** XMLTV EPG 地址 */
+    val epgUrl: String = "",
     /** 解析器列表（JSON 字符串数组，可选；空则仅用脚本 resolvePlay） */
     val parseListJson: String = "[]"
 )
