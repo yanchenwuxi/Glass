@@ -43,6 +43,7 @@ import com.glassbox.app.ui.screens.PlayerScreen
 import com.glassbox.app.ui.screens.SearchScreen
 import com.glassbox.app.ui.screens.SettingsScreen
 import com.glassbox.app.ui.screens.LiveScreen
+import com.glassbox.app.ui.screens.LocalFilesScreen
 import com.glassbox.app.data.MediaDetail
 import com.glassbox.app.data.Episode
 import com.glassbox.app.data.EpisodeGroup
@@ -154,7 +155,6 @@ class MainActivity : ComponentActivity() {
                                 vm = vm,
                                 onBack = { nav.popBackStack() },
                                 onPlay = { url, title ->
-                                    // 构造最小 MediaDetail 进入播放页
                                     val item = MediaItem(id = url, title = title, siteKey = "live", siteName = "直播")
                                     val detail = MediaDetail(
                                         item = item,
@@ -167,8 +167,30 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+                        composable("local") {
+                            LocalFilesScreen(
+                                onBack = { nav.popBackStack() },
+                                onPlay = { url, title ->
+                                    val item = MediaItem(id = url, title = title, siteKey = "local", siteName = "本地")
+                                    val detail = MediaDetail(
+                                        item = item,
+                                        groups = listOf(
+                                            EpisodeGroup("本地", listOf(Episode(title, url)))
+                                        )
+                                    )
+                                    vm.preparePlay(detail, 0, 0)
+                                    nav.navigate("player")
+                                }
+                            )
+                        }
                         composable("settings") {
-                            SettingsScreen(vm = vm, isRoot = true, onBack = { nav.popBackStack("home", inclusive = false) }, onLive = { nav.navigate("live") })
+                            SettingsScreen(
+                                vm = vm,
+                                isRoot = true,
+                                onBack = { nav.popBackStack("home", inclusive = false) },
+                                onLive = { nav.navigate("live") },
+                                onLocalFiles = { nav.navigate("local") }
+                            )
                         }
                     }
 

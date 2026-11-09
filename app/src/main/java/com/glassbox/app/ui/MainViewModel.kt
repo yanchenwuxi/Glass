@@ -773,6 +773,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             "起播准备·解析完成 url=$url headers=$headers 耗时=${android.os.SystemClock.elapsedRealtime() - t0}ms " +
                 "站点=${site?.name} 源类型=${source?.type?.label}"
         )
+        if (url.startsWith("file://") || url.startsWith("content://") || url.startsWith("/")) {
+            return PlaybackPrep(url, headers, null, url.contains(".m3u8", ignoreCase = true))
+        }
         val probe = MediaProbeRunner.probe(url, headers)
         android.util.Log.i(
             "GlassBoxPlayer",
@@ -790,8 +793,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun isMediaLink(url: String): Boolean {
         val u = url.lowercase().substringBefore('?')
-        return u.startsWith("http") && listOf(".m3u8", ".mp4", ".flv", ".mkv", ".ts", ".mov", ".webm", ".avi")
-            .any { u.endsWith(it) }
+        if (u.startsWith("file://") || u.startsWith("content://") || u.startsWith("/storage/") || u.startsWith("/sdcard/")) {
+            return true
+        }
+        return u.startsWith("http") && listOf(
+            ".m3u8", ".mp4", ".flv", ".mkv", ".ts", ".mov", ".webm", ".avi", ".m4v", ".mp3", ".m4a", ".flac", ".aac"
+        ).any { u.endsWith(it) }
     }
 
     private fun siteHeaders(site: SiteDef?): Map<String, String> {

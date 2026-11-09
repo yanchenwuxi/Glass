@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.Hardware
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.LiveTv
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.WifiTethering
 import androidx.compose.material.icons.outlined.MotionPhotosAuto
 import androidx.compose.material.icons.outlined.Movie
@@ -62,7 +63,8 @@ fun SettingsScreen(
     vm: MainViewModel,
     isRoot: Boolean,
     onBack: () -> Unit,
-    onLive: () -> Unit = {}
+    onLive: () -> Unit = {},
+    onLocalFiles: () -> Unit = {}
 ) {
     val palette = GlassTheme.colors
     val context = LocalContext.current
@@ -160,6 +162,9 @@ fun SettingsScreen(
             SettingsGroup("融合能力") {
                 SettingsRow(Icons.Outlined.LiveTv, palette.iconPink, "直播", "M3U / TXT 订阅") {
                     ValueText("打开") { onLive() }
+                }
+                SettingsRow(Icons.Outlined.FolderOpen, palette.iconBlue, "本地文件", "浏览并播放本地视频/音频") {
+                    ValueText("打开") { onLocalFiles() }
                 }
                 SettingsRow(
                     Icons.Outlined.WifiTethering,

@@ -79,7 +79,8 @@ app/src/main/java/com/glassbox/app/
 - [x] 远程控制播放响应：play/pause/toggle/next/prev/seek/stop + GET /status
 - [x] DLNA 投屏（SSDP 发现 + AVTransport）
 - [x] 直播 XMLTV EPG
-- [ ] 本地文件、迅雷 P2P、完整弹幕
+- [x] 本地文件浏览（路径 + SAF）
+- [ ] 迅雷 P2P、完整弹幕
 
 ---
 
