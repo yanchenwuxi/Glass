@@ -20,13 +20,15 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup Python (Chaquopy)
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platform-tools platforms;android-35 build-tools;35.0.0"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -35,12 +37,15 @@ jobs:
         run: |
           PY=$(which python3)
           echo "Using Python: $PY"
-          # Uncomment / set buildPython for CI
           sed -i "s|// buildPython \"python3\"|buildPython \"$PY\"|" app/build.gradle || true
-          grep -n "buildPython\|python {" -A3 app/build.gradle | head -20
+          grep -n "buildPython\|python {" -A5 app/build.gradle | head -30
 
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
+
+      - name: List outputs
+        if: always()
+        run: find app/build/outputs -type f 2>/dev/null || true
 
       - name: Upload APK
         if: success()
