@@ -667,6 +667,7 @@ fun PlayerScreen(vm: MainViewModel, onBack: () -> Unit) {
                 onSpeed = { showSpeed = true },
                 onTracks = { showTracks = true },
                 onPicture = { showPicture = true },
+                onCast = { showCast = true },
                 onInfo = { showInfo = true },
                 onToggleLoop = {
                     loop = !loop
@@ -1146,6 +1147,7 @@ private fun FullscreenOverlay(
     onSpeed: () -> Unit,
     onTracks: () -> Unit,
     onPicture: () -> Unit,
+    onCast: () -> Unit,
     onInfo: () -> Unit,
     onToggleLoop: () -> Unit,
     onToggleHardware: () -> Unit,
@@ -1280,7 +1282,7 @@ private fun FullscreenOverlay(
                         TopTextButton("比例") { onCycleAspect() }
                         TopTextButton("画面", onClick = onPicture)
                         TopTextButton("信息", onClick = onInfo)
-                        TopTextButton("投屏") { showCast = true }
+                        TopTextButton("投屏", onClick = onCast)
                         TopTextButton("选集", onClick = onEpisodes)
                     }
                 }
