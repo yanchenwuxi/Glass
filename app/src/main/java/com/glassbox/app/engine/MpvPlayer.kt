@@ -52,6 +52,8 @@ class MpvPlayer(
     private var surfaceH = 0
     private var picture = PictureSettings()
     private var lastSharpen: Float? = null
+    private var lastEmitMs = 0L
+    private var pendingEmit = false
 
     /** 把 libmpv 的错误/警告原样打到 logcat：否则「没有画面」只能看到一个超时文案。 */
     private val logObserver = MPVLib.LogObserver { prefix, level, text ->
@@ -64,12 +66,18 @@ class MpvPlayer(
         MPVLib.create(context.applicationContext)
         // vo=gpu-next（libplacebo 管线）：旧 vo=gpu 下 equalizer 只有 brightness 生效，
         // 换 gpu-next 后亮度/对比度/饱和度/色相/伽马五项都能实时改画面。
+        // gpu-next + 纯 mediacodec 在部分机型上「缓冲结束首帧」会 native 闪退；
+        // mediacodec-copy 把硬解帧拷回内存再交给 vo，稳定性明显更好。
         MPVLib.setOptionString("vo", "gpu-next")
-        MPVLib.setOptionString("hwdec", "mediacodec")
+        MPVLib.setOptionString("hwdec", "mediacodec-copy")
+        MPVLib.setOptionString("hwdec-codecs", "h264,hevc,vp8,vp9,av1")
         MPVLib.setOptionString("ao", "audiotrack")
         MPVLib.setOptionString("keep-open", "yes")
         MPVLib.setOptionString("idle", "once")
         MPVLib.setOptionString("force-window", "no")
+        // 降低首帧前的 demux 冲击；出错时不要直接 abort 进程
+        MPVLib.setOptionString("demuxer-max-bytes", "64M")
+        MPVLib.setOptionString("demuxer-max-back-bytes", "32M")
         MPVLib.setOptionString("config", "no")
         MPVLib.setOptionString("user-agent", "GlassBox/1.0.8 (libmpv)")
         MPVLib.setOptionString("msg-level", "all=info")
@@ -169,7 +177,7 @@ class MpvPlayer(
         if (released) return
         hwdec = enabled
         // 运行时下发：对下一集生效；当前文件重新加载后也会走新配置。
-        MPVLib.setPropertyString("hwdec", if (enabled) "mediacodec" else "no")
+        MPVLib.setPropertyString("hwdec", if (enabled) "mediacodec-copy" else "no")
         val read = runCatching { MPVLib.getPropertyString("hwdec") }.getOrNull()
         Log.i("GlassBoxPlayer", "MPV setHardwareDecoding=$enabled read=$read")
         emit()
@@ -343,9 +351,10 @@ class MpvPlayer(
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         surfaceReady = false
-        MPVLib.setPropertyString("vo", "null")
-        MPVLib.setPropertyString("force-window", "no")
-        MPVLib.detachSurface()
+        runCatching { MPVLib.setPropertyBoolean("pause", true) }
+        runCatching { MPVLib.setPropertyString("vo", "null") }
+        runCatching { MPVLib.setPropertyString("force-window", "no") }
+        runCatching { MPVLib.detachSurface() }
     }
 
     /** 属性快照：排查「时长只有 1 秒 / 起播即 EOF / 进度归零循环」时，先看这一行。 */
@@ -366,18 +375,29 @@ class MpvPlayer(
             MPVLib.MPV_EVENT_FILE_LOADED -> {
                 loaded = true
                 error = null
-                if (!startApplied && pendingStartMs > 0) {
-                    startApplied = true
-                    seekTo(pendingStartMs)
-                }
-                // 比例属性在 loadfile 后依然生效，但切集/换源时再下发一次保证确定性。
-                applyAspect()
-                // 画面参数在新文件上重新下发：切集后仍然保留当前调节值。
-                if (!picture.isDefault) applyPicture(picture)
-                MPVLib.setPropertyBoolean("pause", false)
+                // 先停在暂停态：立刻 seek + 改 vf + 取消 pause 在部分 SoC 上会在首帧闪退。
+                runCatching { MPVLib.setPropertyBoolean("pause", true) }
+                runCatching { applyAspect() }
                 dumpSnapshot("FILE_LOADED")
-                mainHandler.postDelayed({ dumpSnapshot("FILE_LOADED+2s") }, 2000)
                 emit()
+                // 延后到主线程：等 surface/硬解管道就绪再 seek、画面参数、起播
+                mainHandler.postDelayed({
+                    if (released) return@postDelayed
+                    runCatching {
+                        if (!startApplied && pendingStartMs > 0) {
+                            startApplied = true
+                            seekTo(pendingStartMs)
+                        }
+                        if (!picture.isDefault) applyPicture(picture)
+                        MPVLib.setPropertyBoolean("pause", false)
+                    }.onFailure {
+                        Log.e("GlassBoxPlayer", "MPV 起播失败：${it.message}", it)
+                        error = "起播失败：${it.message}"
+                    }
+                    dumpSnapshot("FILE_LOADED+start")
+                    emit()
+                }, 120)
+                mainHandler.postDelayed({ if (!released) dumpSnapshot("FILE_LOADED+2s") }, 2000)
             }
             MPVLib.MPV_EVENT_END_FILE -> {
                 // 切集时上一文件的 END_FILE 会在新一次 play() 之后才到（loaded 已被重置），
@@ -433,6 +453,16 @@ class MpvPlayer(
 
     private fun emit() {
         if (released) return
+        // 属性回调极密，全量 post 会把主线程打满；起播阶段再叠加 Compose 重组更容易闪退。
+        val now = android.os.SystemClock.elapsedRealtime()
+        if (now - lastEmitMs < 50) {
+            if (!pendingEmit) {
+                pendingEmit = true
+                mainHandler.postDelayed({ pendingEmit = false; emit() }, 50)
+            }
+            return
+        }
+        lastEmitMs = now
         val snapshot = PlaybackState(
             kernel = PlaybackKernel.MPV,
             positionMs = positionMs,

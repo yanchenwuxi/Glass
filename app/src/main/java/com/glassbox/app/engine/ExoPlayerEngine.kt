@@ -74,6 +74,7 @@ class ExoPlayerEngine(
     private var aspectMode = VideoAspect.FIT
     private var currentUrl: String? = null
     private var picture = PictureSettings()
+    private var pendingPicture: PictureSettings? = null
 
     private val poller = object : Runnable {
         override fun run() {
@@ -95,14 +96,25 @@ class ExoPlayerEngine(
             loaded = playbackState == Player.STATE_READY
             buffering = playbackState == Player.STATE_BUFFERING
             if (playbackState == Player.STATE_ENDED) ended = true
+            // READY 后再挂画面效果，避免缓冲结束瞬间重建 GL 链导致闪退
+            if (playbackState == Player.STATE_READY) {
+                val pending = pendingPicture
+                if (pending != null && !pending.isDefault) {
+                    handler.post {
+                        if (!released) runCatching { applyPicture(pending) }
+                    }
+                }
+            }
             emit()
         }
 
         override fun onVideoSizeChanged(videoSize: VideoSize) {
             videoW = videoSize.width
             videoH = videoSize.height
-            // AspectRatioFrameLayout 会随视频尺寸重算，固定比例档位要重新下发。
-            applyAspect()
+            handler.post {
+                if (!released) runCatching { applyAspect() }
+                emit()
+            }
             emit()
         }
 
@@ -327,6 +339,12 @@ class ExoPlayerEngine(
     override fun applyPicture(settings: PictureSettings): Boolean {
         if (released) return false
         picture = settings
+        pendingPicture = settings
+        // 尚未 READY 时只记参数，等 STATE_READY 再真正 setVideoEffects
+        if (!loaded && !settings.isDefault) {
+            Log.i("GlassBoxPlayer", "EXO applyPicture deferred until READY")
+            return true
+        }
         val effects = mutableListOf<Effect>()
         if (settings.brightness != 0f) {
             // 亮度按 RGB 增益近似：-100 → 全黑，0 → 原样，+100 → 2×。

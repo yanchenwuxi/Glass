@@ -255,9 +255,11 @@ fun PlayerScreen(vm: MainViewModel, onBack: () -> Unit) {
         engine.setAspect(aspectMode)
     }
 
-    // 内核切换后同样把画面参数补到新内核；切集不重建引擎，参数本身不会丢。
-    LaunchedEffect(engine) {
-        if (!picture.isDefault) engine.applyPicture(picture)
+    // 等首帧/loaded 后再下发画面参数，避免与硬解起播抢同一时刻导致闪退。
+    LaunchedEffect(engine, snapshot.loaded, snapshot.renderedFrames) {
+        if (!picture.isDefault && (snapshot.loaded || snapshot.renderedFrames > 0)) {
+            runCatching { engine.applyPicture(picture) }
+        }
     }
 
     // 慢片源的首帧可能晚于超时窗口：一旦真的出帧/走进度，就撤掉误报的超时错误。

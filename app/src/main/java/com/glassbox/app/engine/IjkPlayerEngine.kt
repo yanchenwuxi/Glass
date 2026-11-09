@@ -98,9 +98,21 @@ class IjkPlayerEngine(
             durationMs = mp.duration.coerceAtLeast(0)
             videoW = mp.videoWidth
             videoH = mp.videoHeight
-            if (speed != 1f) runCatching { player.setSpeed(speed) }
-            if (pendingStart > 0) mp.seekTo(pendingStart)
-            mp.start()
+            // 硬解 + 立即 seek/start 在部分机型会在「缓冲完成」瞬间 SIGSEGV/SIGBUS
+            handler.postDelayed({
+                if (released) return@postDelayed
+                runCatching {
+                    if (speed != 1f) player.setSpeed(speed)
+                    if (pendingStart > 0) mp.seekTo(pendingStart)
+                    mp.start()
+                    playing = true
+                    applyAspect()
+                }.onFailure {
+                    error = "IJK 起播失败：${it.message}"
+                    android.util.Log.e("GlassBoxPlayer", "IJK start failed", it)
+                }
+                emit()
+            }, 80)
             emit()
         }
         player.setOnCompletionListener {
@@ -129,8 +141,13 @@ class IjkPlayerEngine(
             videoW = width
             videoH = height
             durationMs = mp.duration.coerceAtLeast(0)
-            // 视频尺寸决定了「适应/裁剪」的目标比例，尺寸确定后立即重算宿主层缩放。
-            applyAspect()
+            // 延后布局，避免与 mediacodec 首帧抢同一时刻
+            handler.postDelayed({
+                if (!released) {
+                    runCatching { applyAspect() }
+                    emit()
+                }
+            }, 50)
             emit()
         }
         handler.post(poller)
