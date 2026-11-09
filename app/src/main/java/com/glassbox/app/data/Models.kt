@@ -215,7 +215,11 @@ data class AppSettings(
     /** XMLTV EPG 地址 */
     val epgUrl: String = "",
     /** 解析器列表（JSON 字符串数组，可选；空则仅用脚本 resolvePlay） */
-    val parseListJson: String = "[]"
+    val parseListJson: String = "[]",
+    /** 过滤线路/分集名与广告域名播放地址 */
+    val adFilterEnabled: Boolean = true,
+    /** 起播自动跳过片头秒数，0 关闭 */
+    val skipIntroSec: Int = 0
 )
 
 /** 画面预设：原版「+存为预设」保存的一组滑杆数值。 */

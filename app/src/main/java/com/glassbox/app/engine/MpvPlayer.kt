@@ -42,7 +42,7 @@ class MpvPlayer(
     private var speed = 1f
     private var videoW = 0
     private var videoH = 0
-    private var hwdec = true
+    private var hwdec = false
     private var error: String? = null
     private var frames = 0L
     private var fps = 0f
@@ -66,18 +66,18 @@ class MpvPlayer(
         MPVLib.create(context.applicationContext)
         // vo=gpu-next（libplacebo 管线）：旧 vo=gpu 下 equalizer 只有 brightness 生效，
         // 换 gpu-next 后亮度/对比度/饱和度/色相/伽马五项都能实时改画面。
-        // gpu-next + 纯 mediacodec 在部分机型上「缓冲结束首帧」会 native 闪退；
-        // mediacodec-copy 把硬解帧拷回内存再交给 vo，稳定性明显更好。
-        MPVLib.setOptionString("vo", "gpu-next")
-        MPVLib.setOptionString("hwdec", "mediacodec-copy")
-        MPVLib.setOptionString("hwdec-codecs", "h264,hevc,vp8,vp9,av1")
+        // 起播稳定性优先：vo=gpu + 默认软解。硬解在部分机型首帧必崩，
+        // 用户可在播放页手动开硬解（仍走 mediacodec-copy）。
+        MPVLib.setOptionString("vo", "gpu")
+        MPVLib.setOptionString("hwdec", "no")
         MPVLib.setOptionString("ao", "audiotrack")
         MPVLib.setOptionString("keep-open", "yes")
-        MPVLib.setOptionString("idle", "once")
+        MPVLib.setOptionString("idle", "yes")
         MPVLib.setOptionString("force-window", "no")
-        // 降低首帧前的 demux 冲击；出错时不要直接 abort 进程
-        MPVLib.setOptionString("demuxer-max-bytes", "64M")
-        MPVLib.setOptionString("demuxer-max-back-bytes", "32M")
+        MPVLib.setOptionString("pause", "yes")
+        MPVLib.setOptionString("demuxer-max-bytes", "32M")
+        MPVLib.setOptionString("demuxer-max-back-bytes", "16M")
+        MPVLib.setOptionString("cache", "yes")
         MPVLib.setOptionString("config", "no")
         MPVLib.setOptionString("user-agent", "GlassBox/1.0.8 (libmpv)")
         MPVLib.setOptionString("msg-level", "all=info")
@@ -108,6 +108,9 @@ class MpvPlayer(
         pendingStartMs = startMs
         frames = 0
         fps = 0f
+        // 每次起播强制软解，避免设置里「硬解开」在首帧再次 native 崩
+        hwdec = false
+        runCatching { MPVLib.setPropertyString("hwdec", "no") }
         // 有些站点把 m3u8 放在 .png/image/png 的地址上，mpv 会按扩展名/MIME 走内置 image demuxer，
         // 把整个播放列表当成一张 1 秒静态图（表现就是「时长 1 秒、播一下就结束」）。
         // 统一锁定 lavf demuxer，遇到探测确认的 HLS 再显式指定 hls，绕开后缀伪装。
@@ -228,7 +231,7 @@ class MpvPlayer(
 
     override fun pictureCapability(): PictureCapability = PictureCapability(
         supported = true,
-        note = "libplacebo 色彩调节（vo=gpu-next）：亮度/对比度/饱和度/色相/伽马（-100~100，0 为原样），退出播放页后保留"
+        note = "色彩调节（vo=gpu）：亮度/对比度/饱和度等；起播后手动调节更稳，退出播放页后保留"
     )
 
     /**
@@ -337,7 +340,7 @@ class MpvPlayer(
             pendingUrl = null
             MPVLib.command(arrayOf("loadfile", pending))
         } else {
-            MPVLib.setPropertyString("vo", "gpu-next")
+            MPVLib.setPropertyString("vo", "gpu")
         }
     }
 
@@ -386,9 +389,16 @@ class MpvPlayer(
                     runCatching {
                         if (!startApplied && pendingStartMs > 0) {
                             startApplied = true
-                            seekTo(pendingStartMs)
+                            // 用相对宽松的 seek，exact 在软解首帧前更容易卡死 native
+                            MPVLib.command(
+                                arrayOf(
+                                    "seek",
+                                    String.format(java.util.Locale.US, "%.3f", pendingStartMs / 1000.0),
+                                    "absolute"
+                                )
+                            )
                         }
-                        if (!picture.isDefault) applyPicture(picture)
+                        // 起播阶段不自动套画面滤镜，避免 vf 重建触发 native 崩
                         MPVLib.setPropertyBoolean("pause", false)
                     }.onFailure {
                         Log.e("GlassBoxPlayer", "MPV 起播失败：${it.message}", it)
@@ -396,7 +406,7 @@ class MpvPlayer(
                     }
                     dumpSnapshot("FILE_LOADED+start")
                     emit()
-                }, 120)
+                }, 250)
                 mainHandler.postDelayed({ if (!released) dumpSnapshot("FILE_LOADED+2s") }, 2000)
             }
             MPVLib.MPV_EVENT_END_FILE -> {

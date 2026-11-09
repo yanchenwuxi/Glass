@@ -95,7 +95,9 @@ class AppStore(private val context: Context) {
         remoteControlPort = remoteControlPort.coerceIn(1024, 65535),
         liveSourceUrl = liveSourceUrl ?: "",
         epgUrl = epgUrl ?: "",
-        parseListJson = parseListJson ?: "[]"
+        parseListJson = parseListJson ?: "[]",
+        adFilterEnabled = adFilterEnabled,
+        skipIntroSec = skipIntroSec.coerceIn(0, 600)
     )
 
     private fun seed(): List<SourceEntity> {

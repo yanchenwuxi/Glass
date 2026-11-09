@@ -357,7 +357,9 @@ fun PlayerScreen(vm: MainViewModel, onBack: () -> Unit) {
         addressFailure = false
         currentPlayUrl = prep.url
         currentPlayTitle = d.item.title + (episode?.name?.let { " · $it" } ?: "")
-        engine.play(prep.url, start, prep.headers, forceHls = prep.isHls)
+        val skipMs = if (start <= 0) settings.skipIntroSec.coerceAtLeast(0) * 1000L else 0L
+        engine.play(prep.url, start + skipMs, prep.headers, forceHls = prep.isHls)
+        if (skipMs > 0) hint = "已跳过片头 ${settings.skipIntroSec}s"
         playStarted = true
         trackRefresh++
     }

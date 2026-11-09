@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.VideoLibrary
@@ -45,8 +44,7 @@ fun GlassBottomNav(
     val palette = GlassTheme.colors
     val items = listOf(
         NavItem("home", "媒体", Icons.Outlined.Home),
-        NavItem("favorites", "收藏", Icons.Outlined.FavoriteBorder),
-        NavItem("history", "历史", Icons.Outlined.History),
+        NavItem("library", "片库", Icons.Outlined.FavoriteBorder),
         NavItem("sources", "资源", Icons.Outlined.VideoLibrary),
         NavItem("settings", "设置", Icons.Outlined.Settings)
     )

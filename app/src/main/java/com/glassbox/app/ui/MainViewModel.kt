@@ -644,10 +644,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
         searchJob = viewModelScope.launch {
             _search.value = SearchUiState(query = q, loading = true)
+            // 当前站优先，其余并行；限制并发与单站超时，结果边到边展示
             val sites = (listOfNotNull(_currentSite.value) + store.activeSites())
                 .filter { !it.unsupported }
                 .distinctBy { it.key }
-                .take(12)
+                .take(8)
             if (sites.isEmpty()) {
                 _search.value = SearchUiState(q, false, DemoContent.search(q).map {
                     SearchHit(it, SiteDef(DemoContent.SITE_KEY, DemoContent.SITE_NAME, "glass://demo", 9))
@@ -656,22 +657,55 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             }
             val hits = mutableListOf<SearchHit>()
             val errors = mutableListOf<String>()
-            coroutineScope {
-                sites.map { site ->
-                    async(Dispatchers.IO) {
-                        runCatching {
-                            val source = store.sourceOf(site)
-                            engine.spider(site, source).search(q)
-                        }.onFailure {
-                            errors += "${displayName(site.name)} · ${it.message ?: "搜索失败"}"
-                        }.getOrDefault(emptyList()).map { SearchHit(it, site) }
-                    }
-                }.awaitAll().forEach { hits += it }
+            fun publish(loading: Boolean) {
+                val deduped = hits.distinctBy { it.site.key + "::" + it.item.id }.take(120)
+                _search.value = SearchUiState(q, loading, deduped, errors.distinct())
             }
-            // 多源不合并：同一作品在不同平台的条目各自保留，只去掉同一站点内重复 id。
-            val deduped = hits.distinctBy { it.site.key + "::" + it.item.id }.take(120)
-            _search.value = SearchUiState(q, false, deduped, errors.distinct())
-            if (deduped.isNotEmpty()) store.addSearchHistory(q)
+            // 当前站先搜（通常最快出首屏）
+            val primary = sites.first()
+            val rest = sites.drop(1)
+            runCatching {
+                withTimeout(6_000) {
+                    withContext(Dispatchers.IO) {
+                        val source = store.sourceOf(primary)
+                        engine.spider(primary, source).search(q)
+                    }
+                }
+            }.onSuccess { list ->
+                hits += list.map { SearchHit(it, primary) }
+                publish(loading = rest.isNotEmpty())
+            }.onFailure {
+                errors += "${displayName(primary.name)} · ${it.message ?: "超时/失败"}"
+                publish(loading = rest.isNotEmpty())
+            }
+            if (rest.isNotEmpty()) {
+                coroutineScope {
+                    rest.map { site ->
+                        async(Dispatchers.IO) {
+                            runCatching {
+                                withTimeout(8_000) {
+                                    val source = store.sourceOf(site)
+                                    engine.spider(site, source).search(q)
+                                }
+                            }.fold(
+                                onSuccess = { list -> site to list.map { SearchHit(it, site) } },
+                                onFailure = { e ->
+                                    errors += "${displayName(site.name)} · ${e.message ?: "超时/失败"}"
+                                    site to emptyList()
+                                }
+                            )
+                        }
+                    }.forEach { deferred ->
+                        val (_, list) = deferred.await()
+                        if (list.isNotEmpty()) {
+                            hits += list
+                            publish(loading = true)
+                        }
+                    }
+                }
+            }
+            publish(loading = false)
+            if (hits.isNotEmpty()) store.addSearchHistory(q)
         }
     }
 
@@ -701,12 +735,15 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 result = DemoContent.detail(item.id)
             }
             if (result != null) {
+                val filtered = result.copy(
+                    groups = AdFilter.filterGroups(result.groups, store.settings.value.adFilterEnabled)
+                )
                 _detail.value = DetailUiState(
-                    item = result.item,
-                    detail = result,
+                    item = filtered.item,
+                    detail = filtered,
                     loading = false,
-                    favorite = store.favorites.value.any { it.globalKey == result.item.globalKey },
-                    watch = store.watchOf(result.item)
+                    favorite = store.favorites.value.any { it.globalKey == filtered.item.globalKey },
+                    watch = store.watchOf(filtered.item)
                 )
             } else {
                 val cause = outcome.exceptionOrNull()
@@ -773,6 +810,9 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             "起播准备·解析完成 url=$url headers=$headers 耗时=${android.os.SystemClock.elapsedRealtime() - t0}ms " +
                 "站点=${site?.name} 源类型=${source?.type?.label}"
         )
+        if (store.settings.value.adFilterEnabled && AdFilter.isAdUrl(url)) {
+            return PlaybackPrep(url, headers, "已拦截广告地址（可在设置关闭「去广告」）")
+        }
         if (url.startsWith("file://") || url.startsWith("content://") || url.startsWith("/")) {
             return PlaybackPrep(url, headers, null, url.contains(".m3u8", ignoreCase = true))
         }

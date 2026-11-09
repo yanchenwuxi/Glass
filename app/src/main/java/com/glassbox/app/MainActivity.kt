@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                 }
                 val backStack by nav.currentBackStackEntryAsState()
                 val route = backStack?.destination?.route ?: "home"
-                val tabRoutes = setOf("home", "favorites", "history", "sources", "settings")
+                val tabRoutes = setOf("home", "library", "sources", "settings")
                 val showBottomNav = route in tabRoutes
                 // 筛选 FAB 与首页筛选抽屉由 Activity 持有开关，抽屉内容仍由首页按当前分类渲染。
                 var homeFilterOpen by remember { mutableStateOf(false) }
@@ -107,21 +107,10 @@ class MainActivity : ComponentActivity() {
                                 onFilterSheetClose = { homeFilterOpen = false }
                             )
                         }
-                        composable("favorites") {
+                        composable("library") {
                             LibraryScreen(
                                 vm = vm,
                                 initialHistory = false,
-                                isRoot = true,
-                                onBack = { nav.popBackStack("home", inclusive = false) },
-                                onDetail = openDetail,
-                                onHistory = { record -> openHistory(nav, vm, record, openDetail) },
-                                bottomInset = GlassTheme.dimens.homeBottomInset
-                            )
-                        }
-                        composable("history") {
-                            LibraryScreen(
-                                vm = vm,
-                                initialHistory = true,
                                 isRoot = true,
                                 onBack = { nav.popBackStack("home", inclusive = false) },
                                 onDetail = openDetail,
